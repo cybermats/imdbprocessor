@@ -20,17 +20,16 @@ public class ImdbProcessor {
 
     public static void main(String[] args) {
         LOG.info("Starting...");
-        PipelineOptions pOptions =
-                PipelineOptionsFactory.fromArgs(args).withValidation().create();
+        ImdbProcessorOptions options =
+                PipelineOptionsFactory.fromArgs(args).withValidation().as(ImdbProcessorOptions.class);
 
-        ImdbProcessorOptions options = pOptions.as(ImdbProcessorOptions.class);
-
-        String projectID = "matsf-cloud-gotesting";
         Pipeline p = Pipeline.create(options);
         p.apply("Read file", TextIO.read().from(options.getInputFile()))
                 .apply("Parse TSV", ParDo.of(new ParseTSVFn(options.getHeaders())))
                 .apply("Create entity", ParDo.of(new BuildEntityFn(options.getEntity(), options.getProperties(), options.getIdHeader())))
-                .apply("Write to datastore", DatastoreIO.v1().write().withProjectId(projectID));
+                .apply("Write to datastore", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
+
+        p.run();
     }
 
     public interface ImdbProcessorOptions extends PipelineOptions {
@@ -63,11 +62,12 @@ public class ImdbProcessor {
         ValueProvider<String> getEntity();
 
         void setEntity(ValueProvider<String> value);
-/*
+
         @Description("Project ID to read from datastore")
         @Validation.Required
-        ValueProvider<String> getProject();
-        void setProject(ValueProvider<String> value);*/
+        ValueProvider<String> getDatastoreProject();
+
+        void setDatastoreProject(ValueProvider<String> value);
     }
 
     static class ParseTSVFn extends DoFn<String, HashMap<String, String>> {
