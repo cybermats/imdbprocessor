@@ -66,13 +66,6 @@ public class TestFilterPredicate {
         FilterPredicate pred = new FilterPredicate(filterColumn, filterValues);
         PCollection<TSVRow> output = input.apply(Filter.by(pred));
 
-
-        final List<TSVRow> expected = new ArrayList<>();
-        map = new TSVRow();
-        map.put("foo", "abc");
-        map.put("bar", "def");
-        expected.add(map);
-
         PAssert.that(output).empty();
         testPipeline.run().waitUntilFinish();
     }
@@ -109,6 +102,40 @@ public class TestFilterPredicate {
         map = new TSVRow();
         map.put("foo", "hello");
         map.put("bar", "world");
+        expected.add(map);
+
+        PAssert.that(output).containsInAnyOrder(expected);
+        testPipeline.run().waitUntilFinish();
+    }
+
+    @Test
+    public void testNullFiltering() {
+        final List<TSVRow> inputData = new ArrayList<>();
+        TSVRow map = new TSVRow();
+        map.put("foo", "abc");
+        map.put("bar", "def");
+        inputData.add(map);
+        map = new TSVRow();
+        map.put("foo", "123");
+        map.put("bar", "456");
+        inputData.add(map);
+
+        final ValueProvider<String> filterColumn = ValueProvider.StaticValueProvider.of(null);
+        final ValueProvider<String[]> filterValues = ValueProvider.StaticValueProvider.of(null);
+
+        PCollection<TSVRow> input = testPipeline.apply(Create.of(inputData));
+        FilterPredicate pred = new FilterPredicate(filterColumn, filterValues);
+        PCollection<TSVRow> output = input.apply(Filter.by(pred));
+
+
+        final List<TSVRow> expected = new ArrayList<>();
+        map = new TSVRow();
+        map.put("foo", "abc");
+        map.put("bar", "def");
+        expected.add(map);
+        map = new TSVRow();
+        map.put("foo", "123");
+        map.put("bar", "456");
         expected.add(map);
 
         PAssert.that(output).containsInAnyOrder(expected);

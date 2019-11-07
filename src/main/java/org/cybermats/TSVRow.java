@@ -6,7 +6,8 @@ import org.apache.beam.sdk.coders.StringUtf8Coder;
 
 import java.util.HashMap;
 
-public class TSVRow extends HashMap<String, String> {
+class TSVRow extends HashMap<String, String> {
+    @SuppressWarnings("unused")
     public static Coder getCoder() {
         return MapCoder.of(StringUtf8Coder.of(), StringUtf8Coder.of());
     }

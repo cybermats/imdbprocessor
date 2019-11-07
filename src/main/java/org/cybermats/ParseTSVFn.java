@@ -13,6 +13,7 @@ class ParseTSVFn extends DoFn<String, TSVRow> {
         this.headerValues = headers;
     }
 
+    @SuppressWarnings("unused")
     @ProcessElement
     public void processElement(@Element String element, OutputReceiver<TSVRow> receiver) {
         String[] words = element.split("\t");

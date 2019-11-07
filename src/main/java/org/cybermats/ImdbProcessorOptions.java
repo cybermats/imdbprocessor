@@ -5,7 +5,8 @@ import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.Validation;
 import org.apache.beam.sdk.options.ValueProvider;
 
-interface ImdbProcessorOptions extends PipelineOptions {
+@SuppressWarnings("unused")
+public interface ImdbProcessorOptions extends PipelineOptions {
     @Description("Path of the input file.")
     @Validation.Required
     ValueProvider<String> getInputFile();

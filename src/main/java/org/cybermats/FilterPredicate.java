@@ -17,13 +17,17 @@ class FilterPredicate implements SerializableFunction<TSVRow, Boolean> {
 
     @Override
     public Boolean apply(TSVRow input) {
-        if (this.filterColumn == null) {
+        if (this.filterColumn.get() == null || this.filterValues.get() == null) {
             return true;
         }
         String filterColumn = this.filterColumn.get();
         String[] filterValues = this.filterValues.get();
 
         String value = input.get(filterColumn);
+        if (value == null) {
+            LOG.error("No column found for filter.");
+            return false;
+        }
         for (String filterValue : filterValues) {
             if (filterValue.equals(value)) {
                 return true;
