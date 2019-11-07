@@ -20,7 +20,7 @@ class ImdbProcessor {
         Pipeline p = Pipeline.create(options);
         p.apply("Read file", TextIO.read().from(options.getInputFile()))
                 .apply("Parse TSV", ParDo.of(new ParseTSVFn(options.getHeaders())))
-                .apply(Filter.by(new FilterPredicate(options.getFilterColumn(), options.getFilterValues())))
+                .apply("Filter only relevant", Filter.by(new FilterPredicate(options.getFilterColumn(), options.getFilterValues())))
                 .apply("Create entity", ParDo.of(new BuildEntityFn(options.getEntity(),
                         options.getProperties(), options.getPropertyTypes(), options.getIdHeader())))
                 .apply("Write to datastore", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));

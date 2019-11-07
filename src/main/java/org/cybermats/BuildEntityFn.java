@@ -3,17 +3,16 @@ package org.cybermats;
 import com.google.datastore.v1.Entity;
 import com.google.datastore.v1.Key;
 import com.google.datastore.v1.Value;
+import com.google.protobuf.NullValue;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-
 import static com.google.datastore.v1.client.DatastoreHelper.makeKey;
 import static com.google.datastore.v1.client.DatastoreHelper.makeValue;
 
-class BuildEntityFn extends DoFn<HashMap<String, String>, Entity> {
+class BuildEntityFn extends DoFn<TSVRow, Entity> {
     private static final Logger LOG = LoggerFactory.getLogger(BuildEntityFn.class);
 
     private final ValueProvider<String> kind;
@@ -31,49 +30,50 @@ class BuildEntityFn extends DoFn<HashMap<String, String>, Entity> {
         this.idHeader = idHeader;
     }
 
-    private static Value createString(String value) {
-        if (value == null) return null;
-        return makeValue(value).setExcludeFromIndexes(true).build();
+    private static Value createString(String str) {
+        if (str == null) return Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build();
+        return makeValue(str).setExcludeFromIndexes(true).build();
     }
 
     private static Value createInt(String str) {
-        if (str == null) return null;
+        if (str == null) return Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build();
         int value = Integer.parseInt(str);
         return makeValue(value).setExcludeFromIndexes(true).build();
     }
 
     private static Value createFloat(String str) {
-        if (str == null) return null;
+        if (str == null) return Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build();
         float value = Float.parseFloat(str);
         return makeValue(value).setExcludeFromIndexes(true).build();
     }
 
-    private static Entity makeEntity(HashMap<String, String> element,
+    private static Entity makeEntity(TSVRow element,
                                      String kind,
                                      String[] properties,
                                      String[] propertyTypes,
                                      String idHeader) {
-        Key key = makeKey(kind, idHeader).build();
 
+        String id = element.get(idHeader);
+        Key key = makeKey(kind, id).build();
         Entity.Builder entityBuilder = Entity.newBuilder();
         entityBuilder.setKey(key);
 
         for (int i = 0; i < properties.length; i++) {
             try {
                 Value value;
-                String property = element.get(properties[i]);
+                String propertyValue = element.get(properties[i]);
                 switch (propertyTypes[i]) {
                     case "int":
-                        value = createInt(property);
+                        value = createInt(propertyValue);
                         break;
                     case "float":
-                        value = createFloat(property);
+                        value = createFloat(propertyValue);
                         break;
                     default:
-                        value = createString(property);
+                        value = createString(propertyValue);
                         break;
                 }
-                entityBuilder.putProperties(property, value);
+                entityBuilder.putProperties(properties[i], value);
             } catch (NumberFormatException ex) {
                 LOG.error("Couldn't create an entity of a certain type.", ex);
             }
@@ -83,7 +83,7 @@ class BuildEntityFn extends DoFn<HashMap<String, String>, Entity> {
     }
 
     @ProcessElement
-    public void processElement(@Element HashMap<String, String> element, OutputReceiver<Entity> receiver) {
+    public void processElement(@Element TSVRow element, OutputReceiver<Entity> receiver) {
         final String kind = this.kind.get();
         final String[] properties = this.properties.get();
         final String[] propertyTypes = this.propertyTypes.get();

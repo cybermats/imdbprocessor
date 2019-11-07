@@ -5,9 +5,7 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-
-class ParseTSVFn extends DoFn<String, HashMap<String, String>> {
+class ParseTSVFn extends DoFn<String, TSVRow> {
     private static final Logger LOG = LoggerFactory.getLogger(ParseTSVFn.class);
     private final ValueProvider<String[]> headerValues;
 
@@ -16,22 +14,22 @@ class ParseTSVFn extends DoFn<String, HashMap<String, String>> {
     }
 
     @ProcessElement
-    public void processElement(@Element String element, OutputReceiver<HashMap<String, String>> receiver) {
+    public void processElement(@Element String element, OutputReceiver<TSVRow> receiver) {
         String[] words = element.split("\t");
         String[] headers = this.headerValues.get();
         if (words.length != headers.length) {
             LOG.error("Bad format on input. Actual columns: {}, expected columns: {}.", words.length, headers.length);
             return;
         }
-        HashMap<String, String> map = new HashMap<>();
+        TSVRow row = new TSVRow();
         for (int i = 0; i < words.length; i++) {
             if (headers[i].equals(words[i]))
                 return;
             if (words[i].equals("\\N"))
-                map.put(headers[i], null);
+                row.put(headers[i], null);
             else
-                map.put(headers[i], words[i].trim());
+                row.put(headers[i], words[i].trim());
         }
-        receiver.output(map);
+        receiver.output(row);
     }
 }

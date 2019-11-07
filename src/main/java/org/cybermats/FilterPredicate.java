@@ -5,9 +5,7 @@ import org.apache.beam.sdk.transforms.SerializableFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-
-class FilterPredicate implements SerializableFunction<HashMap<String, String>, Boolean> {
+class FilterPredicate implements SerializableFunction<TSVRow, Boolean> {
     private static final Logger LOG = LoggerFactory.getLogger(FilterPredicate.class);
     private final ValueProvider<String> filterColumn;
     private final ValueProvider<String[]> filterValues;
@@ -18,7 +16,7 @@ class FilterPredicate implements SerializableFunction<HashMap<String, String>, B
     }
 
     @Override
-    public Boolean apply(HashMap<String, String> input) {
+    public Boolean apply(TSVRow input) {
         if (this.filterColumn == null) {
             return true;
         }

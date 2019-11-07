@@ -11,12 +11,15 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class TestParseTSVFn {
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create();
+
+    private final transient ValueProvider<String[]> headers = ValueProvider.StaticValueProvider.of(new String[]{
+            "foo", "bar"
+    });
 
     @Test
     public void testSingleParsing() {
@@ -26,16 +29,12 @@ public class TestParseTSVFn {
         };
         final List<String> LINES = Arrays.asList(LINES_ARRAY);
 
-        ValueProvider<String[]> headers = ValueProvider.StaticValueProvider.of(new String[]{
-                "foo", "bar"
-        });
-
-        List<HashMap<String, String>> expected = new ArrayList<>();
-        HashMap<String, String> map = new HashMap<>();
+        List<TSVRow> expected = new ArrayList<>();
+        TSVRow map = new TSVRow();
         map.put("foo", "abc");
         map.put("bar", "def");
         expected.add(map);
-        map = new HashMap<>();
+        map = new TSVRow();
         map.put("foo", "123");
         map.put("bar", "456");
         expected.add(map);
@@ -43,7 +42,7 @@ public class TestParseTSVFn {
 
         PCollection<String> input = testPipeline.apply(Create.of(LINES));
         ParseTSVFn fn = new ParseTSVFn(headers);
-        PCollection<HashMap<String, String>> output = input.apply(ParDo.of(fn));
+        PCollection<TSVRow> output = input.apply(ParDo.of(fn));
 
         PAssert.that(output).containsInAnyOrder(expected);
         testPipeline.run().waitUntilFinish();
@@ -58,16 +57,12 @@ public class TestParseTSVFn {
         };
         final List<String> LINES = Arrays.asList(LINES_ARRAY);
 
-        ValueProvider<String[]> headers = ValueProvider.StaticValueProvider.of(new String[]{
-                "foo", "bar"
-        });
-
-        List<HashMap<String, String>> expected = new ArrayList<>();
-        HashMap<String, String> map = new HashMap<>();
+        List<TSVRow> expected = new ArrayList<>();
+        TSVRow map = new TSVRow();
         map.put("foo", "abc");
         map.put("bar", "def");
         expected.add(map);
-        map = new HashMap<>();
+        map = new TSVRow();
         map.put("foo", "123");
         map.put("bar", "456");
         expected.add(map);
@@ -75,7 +70,7 @@ public class TestParseTSVFn {
 
         PCollection<String> input = testPipeline.apply(Create.of(LINES));
         ParseTSVFn fn = new ParseTSVFn(headers);
-        PCollection<HashMap<String, String>> output = input.apply(ParDo.of(fn));
+        PCollection<TSVRow> output = input.apply(ParDo.of(fn));
 
         PAssert.that(output).containsInAnyOrder(expected);
         testPipeline.run().waitUntilFinish();
@@ -89,16 +84,12 @@ public class TestParseTSVFn {
         };
         final List<String> LINES = Arrays.asList(LINES_ARRAY);
 
-        ValueProvider<String[]> headers = ValueProvider.StaticValueProvider.of(new String[]{
-                "foo", "bar"
-        });
-
-        List<HashMap<String, String>> expected = new ArrayList<>();
-        HashMap<String, String> map = new HashMap<>();
+        List<TSVRow> expected = new ArrayList<>();
+        TSVRow map = new TSVRow();
         map.put("foo", "abc");
         map.put("bar", "def");
         expected.add(map);
-        map = new HashMap<>();
+        map = new TSVRow();
         map.put("foo", null);
         map.put("bar", "456");
         expected.add(map);
@@ -106,7 +97,7 @@ public class TestParseTSVFn {
 
         PCollection<String> input = testPipeline.apply(Create.of(LINES));
         ParseTSVFn fn = new ParseTSVFn(headers);
-        PCollection<HashMap<String, String>> output = input.apply(ParDo.of(fn));
+        PCollection<TSVRow> output = input.apply(ParDo.of(fn));
 
         PAssert.that(output).containsInAnyOrder(expected);
         testPipeline.run().waitUntilFinish();
