@@ -19,6 +19,13 @@ public class LinkInfo implements Serializable {
     @Nullable
     private final Integer episodeNumber;
 
+    public LinkInfo() {
+        tConst = null;
+        parentTConst = null;
+        seasonNumber = null;
+        episodeNumber = null;
+    }
+
     public LinkInfo(TSVRow row) {
         this.tConst = InfoHelper.parseString(row.get("tconst"));
         this.parentTConst = InfoHelper.parseString(row.get("parentTconst"));

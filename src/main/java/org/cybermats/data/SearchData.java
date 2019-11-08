@@ -14,6 +14,8 @@ public class SearchData implements Serializable {
     private List<String> titles;
 
     private SearchData() {
+        keyWord = null;
+        titles = null;
     }
 
     public String getKeyWord() {

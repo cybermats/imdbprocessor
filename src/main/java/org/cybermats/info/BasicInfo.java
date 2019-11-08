@@ -26,6 +26,15 @@ public class BasicInfo implements Serializable {
     @Nullable
     private Float rating;
 
+    public BasicInfo() {
+        tConst = null;
+        titleType = null;
+        primaryTitle = null;
+        startYear = null;
+        endYear = null;
+        genres = null;
+    }
+
     public BasicInfo(TSVRow row) throws NumberFormatException {
         this.tConst = InfoHelper.parseString(row.get("tconst"));
         this.titleType = InfoHelper.parseString(row.get("titleType"));

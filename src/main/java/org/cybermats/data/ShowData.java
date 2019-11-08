@@ -23,9 +23,15 @@ public class ShowData implements Serializable {
     @Nullable
     private Float rating;
     @Nullable
-    private List<EpisodeData> episodes = null;
+    private List<EpisodeData> episodes;
 
     private ShowData() {
+        tConst = null;
+        primaryTitle = null;
+        startYear = null;
+        endYear = null;
+        rating = null;
+        episodes = null;
     }
 
     public String getTConst() {

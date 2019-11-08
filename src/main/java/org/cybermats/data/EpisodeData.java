@@ -24,6 +24,12 @@ public class EpisodeData implements Serializable {
     private Float rating;
 
     private EpisodeData() {
+        tConst = null;
+        parentTConst = null;
+        primaryTitle = null;
+        season = null;
+        episode = null;
+        rating = null;
     }
 
     public String getTConst() {

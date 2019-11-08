@@ -16,6 +16,11 @@ public class RatingInfo implements Serializable {
     @Nullable
     private final Float rating;
 
+    public RatingInfo() {
+        tConst = null;
+        rating = null;
+    }
+
     public RatingInfo(TSVRow row) throws NumberFormatException {
         this.tConst = InfoHelper.parseString(row.get("tconst"));
         this.rating = InfoHelper.parseFloat(row.get("rating"));
