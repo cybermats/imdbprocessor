@@ -41,7 +41,7 @@ public class EntityHelper {
         for (String value : values) {
             vs.add(makeValue(value).setExcludeFromIndexes(true).build());
         }
-        return makeValue(vs).setExcludeFromIndexes(true).build();
+        return makeValue(vs).build();
     }
 
 
