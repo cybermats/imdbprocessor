@@ -95,10 +95,13 @@ class ImdbProcessor {
                     @ProcessElement
                     public void processElement(ProcessContext c) {
                         KV<String, CoGbkResult> e = c.element();
-                        float rating = e.getValue().getOnly(ratingTag).getRating();
-                        for (BasicInfo b : e.getValue().getAll(basicTag)) {
-                            b.setRating(rating);
-                            c.output(b);
+                        RatingInfo ratings = e.getValue().getOnly(ratingTag, null);
+                        if (ratings != null) {
+                            float rating = ratings.getRating();
+                            for (BasicInfo b : e.getValue().getAll(basicTag)) {
+                                b.setRating(rating);
+                                c.output(b);
+                            }
                         }
                     }
                 }));
@@ -130,11 +133,13 @@ class ImdbProcessor {
                                     @ProcessElement
                                     public void processElement(ProcessContext c) {
                                         KV<String, CoGbkResult> e = c.element();
-                                        LinkInfo link = e.getValue().getOnly(linkTag);
-                                        for (BasicInfo b : e.getValue().getAll(basicTag)) {
-                                            EpisodeData eData = new EpisodeData.Builder()
-                                                    .addBasicInfo(b).addLinkInfo(link).build();
-                                            c.output(KV.of(eData.getParentTConst(), eData));
+                                        LinkInfo link = e.getValue().getOnly(linkTag, null);
+                                        if (link != null) {
+                                            for (BasicInfo b : e.getValue().getAll(basicTag)) {
+                                                EpisodeData eData = new EpisodeData.Builder()
+                                                        .addBasicInfo(b).addLinkInfo(link).build();
+                                                c.output(KV.of(eData.getParentTConst(), eData));
+                                            }
                                         }
                                     }
                                 }))
@@ -163,13 +168,15 @@ class ImdbProcessor {
                             @ProcessElement
                             public void processElement(ProcessContext c) {
                                 KV<String, CoGbkResult> e = c.element();
-                                BasicInfo basic = e.getValue().getOnly(basicTag);
-                                ShowData.Builder builder = new ShowData.Builder(basic);
-                                for (EpisodeData eData : e.getValue().getAll(episodeTag)) {
-                                    builder.addEpisode(eData);
+                                BasicInfo basic = e.getValue().getOnly(basicTag, null);
+                                if (basic != null) {
+                                    ShowData.Builder builder = new ShowData.Builder(basic);
+                                    for (EpisodeData eData : e.getValue().getAll(episodeTag)) {
+                                        builder.addEpisode(eData);
+                                    }
+                                    ShowData showData = builder.build();
+                                    c.output(showData);
                                 }
-                                ShowData showData = builder.build();
-                                c.output(showData);
                             }
                         }));
 
