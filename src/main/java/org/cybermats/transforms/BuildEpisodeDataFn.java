@@ -22,8 +22,8 @@ public class BuildEpisodeDataFn extends DoFn<ShowData, Entity> {
     @ProcessElement
     public void processElement(@Element ShowData show, OutputReceiver<Entity> receiver) {
         for (EpisodeData episode : show.getEpisodes()) {
-            Key key = makeKey(episodeKind.get(), episode.getTConst(),
-                    showKind.get(), episode.getParentTConst()).build();
+            Key key = makeKey(showKind.get(), episode.getParentTConst(),
+                    episodeKind.get(), episode.getTConst()).build();
             Entity.Builder entityBuilder = Entity.newBuilder();
             entityBuilder.setKey(key);
             entityBuilder.putProperties("primaryTitle",
