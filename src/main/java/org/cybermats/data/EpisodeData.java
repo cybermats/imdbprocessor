@@ -60,9 +60,9 @@ public class EpisodeData implements Serializable {
         private String tConst = null;
         private String parentTConst = null;
         private String primaryTitle = null;
-        private Integer season = -1;
-        private Integer episode = -1;
-        private float rating = -1;
+        private Integer season = null;
+        private Integer episode = null;
+        private Float rating = null;
 
 
         public Builder addBasicInfo(BasicInfo b) {
