@@ -97,7 +97,7 @@ class ImdbProcessor {
                         KV<String, CoGbkResult> e = c.element();
                         RatingInfo ratings = e.getValue().getOnly(ratingTag, null);
                         if (ratings != null) {
-                            float rating = ratings.getRating();
+                            Float rating = ratings.getRating();
                             for (BasicInfo b : e.getValue().getAll(basicTag)) {
                                 b.setRating(rating);
                                 c.output(b);
