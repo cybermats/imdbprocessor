@@ -1,11 +1,12 @@
 package org.cybermats;
 
-import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
+import org.cybermats.helpers.TSVRow;
+import org.cybermats.transforms.ParseTSVFn;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -17,9 +18,9 @@ public class TestParseTSVFn {
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create();
 
-    private final transient ValueProvider<String[]> headers = ValueProvider.StaticValueProvider.of(new String[]{
+    private final transient String[] headers = new String[]{
             "foo", "bar"
-    });
+    };
 
     @Test
     public void testSingleParsing() {

@@ -7,56 +7,33 @@ import org.apache.beam.sdk.options.ValueProvider;
 
 @SuppressWarnings("unused")
 public interface ImdbProcessorOptions extends PipelineOptions {
-    @Description("Path of the input file.")
+    @Description("Directory/Bucket of the input files.")
     @Validation.Required
-    ValueProvider<String> getInputFile();
+    ValueProvider<String> getInputDir();
 
-    void setInputFile(ValueProvider<String> value);
+    void setInputDir(ValueProvider<String> value);
 
-    @Description("All headers in the file.")
+    @Description("Name of show entity type in Datastore.")
     @Validation.Required
-    ValueProvider<String[]> getHeaders();
+    ValueProvider<String> getShowEntity();
 
-    void setHeaders(ValueProvider<String[]> value);
+    void setShowEntity(ValueProvider<String> value);
 
-    @Description("Name of the header that contains the Id column.")
+    @Description("Name of episode entity type in Datastore.")
     @Validation.Required
-    ValueProvider<String> getIdHeader();
+    ValueProvider<String> getEpisodeEntity();
 
-    void setIdHeader(ValueProvider<String> value);
+    void setEpisodeEntity(ValueProvider<String> value);
 
-    @Description("List of headers that should be added as properties.")
+    @Description("Name of search entity type in Datastore.")
     @Validation.Required
-    ValueProvider<String[]> getProperties();
+    ValueProvider<String> getSearchEntity();
 
-    void setProperties(ValueProvider<String[]> value);
-
-    @Description("List of headers that should be added as properties.")
-    @Validation.Required
-    ValueProvider<String[]> getPropertyTypes();
-
-    void setPropertyTypes(ValueProvider<String[]> value);
-
-    @Description("Name of entity type in Datastore.")
-    @Validation.Required
-    ValueProvider<String> getEntity();
-
-    void setEntity(ValueProvider<String> value);
+    void setSearchEntity(ValueProvider<String> value);
 
     @Description("Project ID to read from datastore")
     @Validation.Required
     ValueProvider<String> getDatastoreProject();
 
     void setDatastoreProject(ValueProvider<String> value);
-
-    @Description("Column to apply filter to.")
-    ValueProvider<String> getFilterColumn();
-
-    void setFilterColumn(ValueProvider<String> value);
-
-    @Description("Which value to filter for.")
-    ValueProvider<String[]> getFilterValues();
-
-    void setFilterValues(ValueProvider<String[]> value);
-
 }

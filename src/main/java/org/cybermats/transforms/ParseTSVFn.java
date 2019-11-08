@@ -1,23 +1,22 @@
-package org.cybermats;
+package org.cybermats.transforms;
 
-import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.cybermats.helpers.TSVRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ParseTSVFn extends DoFn<String, TSVRow> {
+public class ParseTSVFn extends DoFn<String, TSVRow> {
     private static final Logger LOG = LoggerFactory.getLogger(ParseTSVFn.class);
-    private final ValueProvider<String[]> headerValues;
+    private final String[] headers;
 
-    ParseTSVFn(ValueProvider<String[]> headers) {
-        this.headerValues = headers;
+    public ParseTSVFn(String[] headers) {
+        this.headers = headers;
     }
 
     @SuppressWarnings("unused")
     @ProcessElement
     public void processElement(@Element String element, OutputReceiver<TSVRow> receiver) {
         String[] words = element.split("\t");
-        String[] headers = this.headerValues.get();
         if (words.length != headers.length) {
             LOG.error("Bad format on input. Actual columns: {}, expected columns: {}.", words.length, headers.length);
             return;
