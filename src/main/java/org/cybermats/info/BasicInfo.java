@@ -8,25 +8,25 @@ import org.cybermats.helpers.TSVRow;
 
 import java.io.Serializable;
 
+@SuppressWarnings("unused")
 @DefaultCoder(AvroCoder.class)
 public class BasicInfo implements Serializable {
-
     @Nullable
     private final String tConst;
     @Nullable
-    private final String titleType;
+    private String titleType;
     @Nullable
-    private final String primaryTitle;
+    private String primaryTitle;
     @Nullable
-    private final Integer startYear;
+    private Integer startYear;
     @Nullable
-    private final Integer endYear;
+    private Integer endYear;
     @Nullable
-    private final String[] genres;
+    private String[] genres;
     @Nullable
     private Float rating;
 
-    public BasicInfo() {
+    private BasicInfo() {
         tConst = null;
         titleType = null;
         primaryTitle = null;
@@ -35,7 +35,16 @@ public class BasicInfo implements Serializable {
         genres = null;
     }
 
-    public BasicInfo(TSVRow row) throws NumberFormatException {
+    private BasicInfo(String tconst) {
+        this.tConst = tconst;
+        titleType = null;
+        primaryTitle = null;
+        startYear = null;
+        endYear = null;
+        genres = null;
+    }
+
+    private BasicInfo(TSVRow row) throws NumberFormatException {
         this.tConst = InfoHelper.parseString(row.get("tconst"));
         this.titleType = InfoHelper.parseString(row.get("titleType"));
         this.primaryTitle = InfoHelper.parseString(row.get("primaryTitle"));
@@ -43,6 +52,16 @@ public class BasicInfo implements Serializable {
         this.endYear = InfoHelper.parseInt(row.get("endYear"));
         this.genres = InfoHelper.parseStringArray(row.get("genres"));
     }
+
+
+    public static BasicInfo of(TSVRow row) {
+        return new BasicInfo(row);
+    }
+
+    public static BasicInfo of(String tconst) {
+        return new BasicInfo(tconst);
+    }
+
 
     public String getTConst() {
         return tConst;
@@ -73,7 +92,35 @@ public class BasicInfo implements Serializable {
         return rating;
     }
 
-    public void setRating(Float rating) {
+    public BasicInfo setRating(Float rating) {
         this.rating = rating;
+        return this;
     }
+
+    public BasicInfo setTitleType(String titleType) {
+        this.titleType = titleType;
+        return this;
+    }
+
+    public BasicInfo setPrimaryTitle(String primaryTitle) {
+        this.primaryTitle = primaryTitle;
+        return this;
+    }
+
+    public BasicInfo setStartYear(Integer startYear) {
+        this.startYear = startYear;
+        return this;
+    }
+
+    public BasicInfo setEndYear(Integer endYear) {
+        this.endYear = endYear;
+        return this;
+    }
+
+    public BasicInfo setGenres(String[] genres) {
+        this.genres = genres;
+        return this;
+    }
+
+
 }

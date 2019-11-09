@@ -39,7 +39,7 @@ public class EntityHelper {
 
         List<Value> vs = new ArrayList<>();
         for (String value : values) {
-            vs.add(makeValue(value).setExcludeFromIndexes(true).build());
+            vs.add(createValue(value));
         }
         return makeValue(vs).build();
     }

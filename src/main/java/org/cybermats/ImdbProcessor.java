@@ -22,10 +22,7 @@ import org.cybermats.data.ShowData;
 import org.cybermats.info.BasicInfo;
 import org.cybermats.info.LinkInfo;
 import org.cybermats.info.RatingInfo;
-import org.cybermats.transforms.BuildEpisodeDataFn;
-import org.cybermats.transforms.BuildSearchDataFn;
-import org.cybermats.transforms.BuildShowDataFn;
-import org.cybermats.transforms.ParseTSVFn;
+import org.cybermats.transforms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +73,7 @@ class ImdbProcessor {
         PCollection<KV<String, BasicInfo>> basicsById = p.apply("Read Basics File", TextIO.read().from(
                 createFilename(options.getInputDir(), "title.basics.tsv.gz")))
                 .apply("Parse Basics TSV", ParDo.of(new ParseTSVFn(BASIC_HEADERS)))
-                .apply("Convert Basics TSV into POJO", MapElements.into(TypeDescriptor.of(BasicInfo.class)).via(BasicInfo::new))
+                .apply("Convert Basics TSV into POJO", MapElements.into(TypeDescriptor.of(BasicInfo.class)).via(BasicInfo::of))
                 .apply("Map Basics over Id", WithKeys.of((SerializableFunction<BasicInfo, String>) BasicInfo::getTConst))
                 .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(BasicInfo.class)));
 
@@ -195,19 +192,8 @@ class ImdbProcessor {
         /*
           Create the search space
          */
-        // TODO: Change search to remove non-alphabetic signs.
-        // TODO: Change search to lower case all words.
         PCollection<SearchData> IdsByWord = allTvSeries
-                .apply("Create lookup for titles", ParDo.of(new DoFn<BasicInfo, KV<String, String>>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        String id = c.element().getTConst();
-                        String[] words = c.element().getPrimaryTitle().split("\\s+");
-                        for (String word : words) {
-                            c.output(KV.of(word, id));
-                        }
-                    }
-                }))
+                .apply("Create lookup for titles", ParDo.of(new SearchGeneratorFn()))
                 .apply("Group by key word", GroupByKey.create())
                 .apply("Create POJOs for search space", ParDo.of(new DoFn<KV<String, Iterable<String>>, SearchData>() {
                     @ProcessElement
