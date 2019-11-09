@@ -72,6 +72,7 @@ class ImdbProcessor {
         /*
          Read the Basic and Ratings file, and populate the basic info with the ratings.
          */
+        // TODO: Remove TSV parsing step and join everything into one transform. gs -> map basic on ID.
         PCollection<KV<String, BasicInfo>> basicsById = p.apply("Read Basics File", TextIO.read().from(
                 createFilename(options.getInputDir(), "title.basics.tsv.gz")))
                 .apply("Parse Basics TSV", ParDo.of(new ParseTSVFn(BASIC_HEADERS)))
@@ -79,6 +80,7 @@ class ImdbProcessor {
                 .apply("Map Basics over Id", WithKeys.of((SerializableFunction<BasicInfo, String>) BasicInfo::getTConst))
                 .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(BasicInfo.class)));
 
+        // TODO: Remove TSV parsing step and join everything into one transform. gs -> map ratings on ID.
         PCollection<KV<String, RatingInfo>> ratingsById = p.apply("Read Ratings File",
                 TextIO.read().from(createFilename(options.getInputDir(), "title.ratings.tsv.gz")))
                 .apply("Parse Ratings TSV", ParDo.of(new ParseTSVFn(RATING_HEADERS)))
@@ -117,6 +119,7 @@ class ImdbProcessor {
                 .apply("Map Episodes over Id", WithKeys.of(BasicInfo::getTConst))
                 .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(BasicInfo.class)));
 
+        // TODO: Remove TSV parsing step and join everything into one transform. gs -> map links on ID.
         // Read Episode link info into map of POJO objects.
         PCollection<KV<String, LinkInfo>> linksById = p.apply("Read Episode File",
                 TextIO.read().from(createFilename(options.getInputDir(), "title.episode.tsv.gz")))
@@ -180,9 +183,11 @@ class ImdbProcessor {
                             }
                         }));
 
+        // TODO: Read in old shows and only update updated and new ones, and delete old.
         showData.apply("Creating Show Entities", ParDo.of(new BuildShowDataFn(options.getShowEntity())))
                 .apply("Write shows", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
+        // TODO: Read in old episodes and only update updated and new ones, and delete old.
         showData.apply("Creating Episode Entities",
                 ParDo.of(new BuildEpisodeDataFn(options.getEpisodeEntity(), options.getShowEntity())))
                 .apply("Write episodes", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
@@ -190,6 +195,8 @@ class ImdbProcessor {
         /*
           Create the search space
          */
+        // TODO: Change search to remove non-alphabetic signs.
+        // TODO: Change search to lower case all words.
         PCollection<SearchData> IdsByWord = allTvSeries
                 .apply("Create lookup for titles", ParDo.of(new DoFn<BasicInfo, KV<String, String>>() {
                     @ProcessElement
@@ -212,6 +219,8 @@ class ImdbProcessor {
                     }
                 }));
 
+        // TODO: Remove POJO step and create entity directly.
+        // TODO: Read in old searches and only update the new ones.
         IdsByWord.apply("Create Search Entity", ParDo.of(new BuildSearchDataFn(options.getSearchEntity())))
                 .apply("Write searches", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
