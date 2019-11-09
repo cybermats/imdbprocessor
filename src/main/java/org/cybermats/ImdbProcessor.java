@@ -16,13 +16,15 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TypeDescriptor;
+import org.cybermats.composites.CreateSearchSpace;
 import org.cybermats.data.EpisodeData;
-import org.cybermats.data.SearchData;
 import org.cybermats.data.ShowData;
 import org.cybermats.info.BasicInfo;
 import org.cybermats.info.LinkInfo;
 import org.cybermats.info.RatingInfo;
-import org.cybermats.transforms.*;
+import org.cybermats.transforms.BuildEpisodeDataFn;
+import org.cybermats.transforms.BuildShowDataFn;
+import org.cybermats.transforms.ParseTSVFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,25 +191,11 @@ class ImdbProcessor {
                 ParDo.of(new BuildEpisodeDataFn(options.getEpisodeEntity(), options.getShowEntity())))
                 .apply("Write episodes", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
-        /*
+      /*
           Create the search space
          */
-        PCollection<SearchData> IdsByWord = allTvSeries
-                .apply("Create lookup for titles", ParDo.of(new SearchGeneratorFn()))
-                .apply("Group by key word", GroupByKey.create())
-                .apply("Create POJOs for search space", ParDo.of(new DoFn<KV<String, Iterable<String>>, SearchData>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-
-                        SearchData.Builder builder = new SearchData.Builder(c.element().getKey());
-                        builder.addTitles(c.element().getValue());
-                        c.output(builder.build());
-                    }
-                }));
-
-        // TODO: Remove POJO step and create entity directly.
         // TODO: Read in old searches and only update the new ones.
-        IdsByWord.apply("Create Search Entity", ParDo.of(new BuildSearchDataFn(options.getSearchEntity())))
+        allTvSeries.apply("Create Search Space", new CreateSearchSpace(options.getSearchEntity()))
                 .apply("Write searches", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
         p.run();
