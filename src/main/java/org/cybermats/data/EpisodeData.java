@@ -9,7 +9,7 @@ import org.cybermats.info.LinkInfo;
 import java.io.Serializable;
 
 @DefaultCoder(AvroCoder.class)
-public class EpisodeData implements Serializable {
+public class EpisodeData implements Serializable, Comparable<EpisodeData> {
     @Nullable
     private String tConst;
     @Nullable
@@ -54,6 +54,11 @@ public class EpisodeData implements Serializable {
 
     public Float getRating() {
         return rating;
+    }
+
+    @Override
+    public int compareTo(EpisodeData episodeData) {
+        return this.tConst.compareTo(episodeData.tConst);
     }
 
     public static class Builder {

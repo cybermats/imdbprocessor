@@ -2,6 +2,7 @@ package org.cybermats.composites;
 
 import com.google.datastore.v1.Entity;
 import com.google.datastore.v1.Key;
+import com.google.datastore.v1.PartitionId;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
@@ -18,8 +19,12 @@ public class FilterChangedTest {
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create();
 
-    private Entity createEntity(String kind, String id, String property, String value) {
-        Key key = makeKey(kind, id).build();
+    private Entity createEntity(String projectId, String kind, String id, String property, String value) {
+        Key.Builder keyBuilder = makeKey(kind, id);
+        PartitionId.Builder pBuilder = keyBuilder.getPartitionIdBuilder();
+        pBuilder.setProjectId(projectId);
+        keyBuilder.setPartitionId(pBuilder.build());
+        Key key = keyBuilder.build();
         Entity.Builder entityBuilder = Entity.newBuilder();
         entityBuilder.setKey(key);
         entityBuilder.putProperties(property, EntityHelper.createValue(value));
@@ -28,8 +33,8 @@ public class FilterChangedTest {
 
     @Test
     public void TestPositive() {
-        Entity oldEnt = createEntity("kind", "id", "prop", "value");
-        Entity newEnt = createEntity("kind", "id", "prop", "value");
+        Entity oldEnt = createEntity("pid", "kind", "id", "prop", "value");
+        Entity newEnt = createEntity("pid", "kind", "id", "prop", "value");
         PCollection<Entity> oldEnts = testPipeline.apply("Phony old searches", Create.of(oldEnt));
         PCollection<Entity> newEnts = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
@@ -44,8 +49,8 @@ public class FilterChangedTest {
 
     @Test
     public void TestUpdated() {
-        Entity oldEnt = createEntity("kind", "id", "prop", "value");
-        Entity newEnt = createEntity("kind", "id", "prop", "value2");
+        Entity oldEnt = createEntity("pid", "kind", "id", "prop", "value");
+        Entity newEnt = createEntity("pid", "kind", "id", "prop", "value2");
         PCollection<Entity> oldEnts = testPipeline.apply("Phony old searches", Create.of(oldEnt));
         PCollection<Entity> newEnts = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
@@ -60,7 +65,7 @@ public class FilterChangedTest {
 
     @Test
     public void TestNew() {
-        Entity newEnt = createEntity("kind", "id", "prop", "value");
+        Entity newEnt = createEntity("pid", "kind", "id", "prop", "value");
         PCollection<Entity> oldEnts = testPipeline.apply("Phony old searches", Create.empty(TypeDescriptor.of(Entity.class)));
         PCollection<Entity> newEnts = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
@@ -75,7 +80,7 @@ public class FilterChangedTest {
 
     @Test
     public void TestOld() {
-        Entity oldEnt = createEntity("kind", "id", "prop", "value");
+        Entity oldEnt = createEntity("pid", "kind", "id", "prop", "value");
         PCollection<Entity> oldEnts = testPipeline.apply("Phony old searches", Create.of(oldEnt));
         PCollection<Entity> newEnts = testPipeline.apply("Phony new searches", Create.empty(TypeDescriptor.of(Entity.class)));
 

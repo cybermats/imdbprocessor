@@ -15,12 +15,12 @@ import org.cybermats.transforms.SearchGeneratorFn;
 
 
 public class CreateSearchSpace extends PTransform<PCollection<BasicInfo>, PCollection<Entity>> {
-    final ValueProvider<String> searchKind;
-    final ValueProvider<String> projectId;
+    private final ValueProvider<String> searchKind;
+    private final ValueProvider<String> projectId;
 
     public CreateSearchSpace(ValueProvider<String> searchKind, ValueProvider<String> projectId) {
         this.searchKind = searchKind;
-        this.projectId = searchKind;
+        this.projectId = projectId;
     }
 
     @Override

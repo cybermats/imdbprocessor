@@ -87,6 +87,7 @@ public class ShowData implements Serializable {
             data.startYear = this.startYear;
             data.endYear = this.endYear;
             data.rating = this.rating;
+            Collections.sort(this.episodes);
             data.episodes = Collections.unmodifiableList(this.episodes);
             return data;
         }

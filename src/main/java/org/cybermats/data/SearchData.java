@@ -43,6 +43,7 @@ public class SearchData implements Serializable {
         public SearchData build() {
             SearchData data = new SearchData();
             data.keyWord = this.keyWord;
+            Collections.sort(this.titles);
             data.titles = Collections.unmodifiableList(this.titles);
             return data;
         }

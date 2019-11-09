@@ -168,13 +168,13 @@ class ImdbProcessor {
         PCollection<Entity> oldSearches = p
                 .apply(DatastoreIO.v1().read().withQuery(q).withProjectId(options.getDatastoreProject()));
 
-        // TODO: Read in old searches and only update the new ones.
         PCollection<Entity> newSearches = allTvSeries
-                .apply("Create Search Space", new CreateSearchSpace(options.getSearchEntity(), options.getDatastoreProject()));
+                .apply("Create Search Space", new CreateSearchSpace(
+                        options.getSearchEntity(), options.getDatastoreProject()));
 
-        FilterChanged fc = new FilterChanged();
-        PCollectionTuple.of(fc.getOldSearchTag(), oldSearches).and(fc.getNewSearchTag(), newSearches)
-                .apply(fc)
+        FilterChanged filterChanged = new FilterChanged();
+        PCollectionTuple.of(filterChanged.getOldSearchTag(), oldSearches).and(filterChanged.getNewSearchTag(), newSearches)
+                .apply("Filter out unchanged searches", filterChanged)
                 .apply("Write searches", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
         p.run();

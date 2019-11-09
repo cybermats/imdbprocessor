@@ -14,7 +14,8 @@ public class BuildSearchDataFn extends DoFn<SearchData, Entity> {
     private final ValueProvider<String> searchKind;
     private final ValueProvider<String> projectId;
 
-    public BuildSearchDataFn(ValueProvider<String> searchKind, ValueProvider<String> projectId) {
+    public BuildSearchDataFn(ValueProvider<String> searchKind,
+                             ValueProvider<String> projectId) {
         this.searchKind = searchKind;
         this.projectId = projectId;
     }

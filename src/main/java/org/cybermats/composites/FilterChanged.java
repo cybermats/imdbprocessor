@@ -59,7 +59,7 @@ public class FilterChanged extends PTransform<PCollectionTuple, PCollection<Enti
                 }));
     }
 
-    private class ExtractEntityKey implements SerializableFunction<Entity, String> {
+    private static class ExtractEntityKey implements SerializableFunction<Entity, String> {
 
         @Override
         public String apply(Entity input) {
