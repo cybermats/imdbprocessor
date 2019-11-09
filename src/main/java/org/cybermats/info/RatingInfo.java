@@ -26,6 +26,10 @@ public class RatingInfo implements Serializable {
         this.rating = InfoHelper.parseFloat(row.get("rating"));
     }
 
+    public static RatingInfo of(TSVRow row) {
+        return new RatingInfo(row);
+    }
+
     public String getTConst() {
         return tConst;
     }

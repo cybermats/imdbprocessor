@@ -13,9 +13,7 @@ public class SearchGeneratorFn extends DoFn<BasicInfo, KV<String, String>> {
     public void processElement(@Element BasicInfo element, OutputReceiver<KV<String, String>> receiver) {
         String id = element.getTConst();
         String title = element.getPrimaryTitle().toLowerCase();
-        LOG.info(title);
         title = title.replaceAll("[^\\p{IsLatin}]", " ");
-        LOG.info(title);
         String[] words = title.split("\\s+");
         for (String word : words) {
             if (word.length() > 0)

@@ -1,5 +1,7 @@
 package org.cybermats;
 
+import com.google.datastore.v1.Entity;
+import com.google.datastore.v1.Query;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.KvCoder;
@@ -14,28 +16,20 @@ import org.apache.beam.sdk.transforms.join.CoGroupByKey;
 import org.apache.beam.sdk.transforms.join.KeyedPCollectionTuple;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
-import org.apache.beam.sdk.values.TypeDescriptor;
+import org.cybermats.composites.CreateBasicsWithRatings;
 import org.cybermats.composites.CreateSearchSpace;
+import org.cybermats.composites.FilterChanged;
 import org.cybermats.data.EpisodeData;
-import org.cybermats.data.ShowData;
 import org.cybermats.info.BasicInfo;
 import org.cybermats.info.LinkInfo;
-import org.cybermats.info.RatingInfo;
-import org.cybermats.transforms.BuildEpisodeDataFn;
-import org.cybermats.transforms.BuildShowDataFn;
-import org.cybermats.transforms.ParseTSVFn;
+import org.cybermats.transforms.ParseLinkInfoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class ImdbProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ImdbProcessor.class);
-
-    private static final String[] BASIC_HEADERS = new String[]{"tconst", "titleType", "primaryTitle",
-            "originalTitle", "isAdult", "startYear", "endYear", "runtimeMinutes", "genre"};
-    private static final String[] EPISODE_HEADERS = new String[]{"tconst", "parentTconst",
-            "seasonNumber", "episodeNumber"};
-    private static final String[] RATING_HEADERS = new String[]{"tconst", "averageRating", "numVotes"};
 
     private static ValueProvider.NestedValueProvider<String, String> createFilename(
             ValueProvider<String> directory, String filename) {
@@ -56,8 +50,6 @@ class ImdbProcessor {
         ImdbProcessorOptions options =
                 PipelineOptionsFactory.fromArgs(args).withValidation().as(ImdbProcessorOptions.class);
 
-        final TupleTag<RatingInfo> ratingTag = new TupleTag<RatingInfo>() {
-        };
         final TupleTag<LinkInfo> linkTag = new TupleTag<LinkInfo>() {
         };
         final TupleTag<BasicInfo> basicTag = new TupleTag<BasicInfo>() {
@@ -71,42 +63,18 @@ class ImdbProcessor {
         /*
          Read the Basic and Ratings file, and populate the basic info with the ratings.
          */
-        // TODO: Remove TSV parsing step and join everything into one transform. gs -> map basic on ID.
-        PCollection<KV<String, BasicInfo>> basicsById = p.apply("Read Basics File", TextIO.read().from(
-                createFilename(options.getInputDir(), "title.basics.tsv.gz")))
-                .apply("Parse Basics TSV", ParDo.of(new ParseTSVFn(BASIC_HEADERS)))
-                .apply("Convert Basics TSV into POJO", MapElements.into(TypeDescriptor.of(BasicInfo.class)).via(BasicInfo::of))
-                .apply("Map Basics over Id", WithKeys.of((SerializableFunction<BasicInfo, String>) BasicInfo::getTConst))
-                .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(BasicInfo.class)));
 
-        // TODO: Remove TSV parsing step and join everything into one transform. gs -> map ratings on ID.
-        PCollection<KV<String, RatingInfo>> ratingsById = p.apply("Read Ratings File",
-                TextIO.read().from(createFilename(options.getInputDir(), "title.ratings.tsv.gz")))
-                .apply("Parse Ratings TSV", ParDo.of(new ParseTSVFn(RATING_HEADERS)))
-                .apply("Convert Ratings TSV into POJO", MapElements.into(TypeDescriptor.of(RatingInfo.class)).via(RatingInfo::new))
-                .apply("Map Ratings over Id", WithKeys.of((SerializableFunction<RatingInfo, String>) RatingInfo::getTConst))
-                .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(RatingInfo.class)));
+        PCollection<String> basicsFile = p.apply("Read Basics File", TextIO.read().from(
+                createFilename(options.getInputDir(), "title.basics.tsv.gz")));
+        PCollection<String> ratingsFile = p.apply("Read Ratings File",
+                TextIO.read().from(createFilename(options.getInputDir(), "title.ratings.tsv.gz")));
 
-        PCollection<KV<String, CoGbkResult>> basicsWithRatingsPrevious =
-                KeyedPCollectionTuple.of(basicTag, basicsById).and(ratingTag, ratingsById)
-                        .apply("Join basics and ratings", CoGroupByKey.create());
+        CreateBasicsWithRatings createBasicsWithRatings = new CreateBasicsWithRatings();
 
-        PCollection<BasicInfo> basicsWithRatings = basicsWithRatingsPrevious
-                .apply("Add ratings to basic info", ParDo.of(new DoFn<KV<String, CoGbkResult>, BasicInfo>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c) {
-                        KV<String, CoGbkResult> e = c.element();
-                        RatingInfo ratings = e.getValue().getOnly(ratingTag, null);
-                        if (ratings != null) {
-                            Float rating = ratings.getRating();
-                            for (BasicInfo b : e.getValue().getAll(basicTag)) {
-                                b.setRating(rating);
-                                c.output(b);
-                            }
-                        }
-                    }
-                }));
-
+        PCollection<BasicInfo> basicsWithRatings = PCollectionTuple
+                .of(createBasicsWithRatings.getBasicsFileTag(), basicsFile)
+                .and(createBasicsWithRatings.getRatingsFileTag(), ratingsFile)
+                .apply("Create basics with Ratings", createBasicsWithRatings);
 
         /*
          Read the episodes file to get the link to the parent for each episode.
@@ -118,13 +86,10 @@ class ImdbProcessor {
                 .apply("Map Episodes over Id", WithKeys.of(BasicInfo::getTConst))
                 .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(BasicInfo.class)));
 
-        // TODO: Remove TSV parsing step and join everything into one transform. gs -> map links on ID.
         // Read Episode link info into map of POJO objects.
         PCollection<KV<String, LinkInfo>> linksById = p.apply("Read Episode File",
                 TextIO.read().from(createFilename(options.getInputDir(), "title.episode.tsv.gz")))
-                .apply("Parse TSV", ParDo.of(new ParseTSVFn(EPISODE_HEADERS)))
-                .apply("Convert Episode TSV into POJO", MapElements.into(TypeDescriptor.of(LinkInfo.class)).via(LinkInfo::new))
-                .apply("Map link info over Id", WithKeys.of(LinkInfo::getTConst))
+                .apply("Parse TSV info Link Info by id", ParDo.of(new ParseLinkInfoFn()))
                 .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(LinkInfo.class)));
 
         PCollection<KV<String, EpisodeData>> episodesByParents =
@@ -162,7 +127,7 @@ class ImdbProcessor {
                 .apply("Map show info over Id", WithKeys.of(BasicInfo::getTConst))
                 .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(BasicInfo.class)));
 
-
+/*
         PCollection<ShowData> showData =
                 KeyedPCollectionTuple.of(basicTag, seriesById).and(episodeTag, episodesByParents)
                         .apply("Join shows with episodes", CoGroupByKey.create())
@@ -190,12 +155,26 @@ class ImdbProcessor {
         showData.apply("Creating Episode Entities",
                 ParDo.of(new BuildEpisodeDataFn(options.getEpisodeEntity(), options.getShowEntity())))
                 .apply("Write episodes", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
+*/
 
       /*
           Create the search space
          */
+
+        Query.Builder qb = Query.newBuilder();
+        qb.addKindBuilder().setName("search");
+        Query q = qb.build();
+
+        PCollection<Entity> oldSearches = p
+                .apply(DatastoreIO.v1().read().withQuery(q).withProjectId(options.getDatastoreProject()));
+
         // TODO: Read in old searches and only update the new ones.
-        allTvSeries.apply("Create Search Space", new CreateSearchSpace(options.getSearchEntity()))
+        PCollection<Entity> newSearches = allTvSeries
+                .apply("Create Search Space", new CreateSearchSpace(options.getSearchEntity(), options.getDatastoreProject()));
+
+        FilterChanged fc = new FilterChanged();
+        PCollectionTuple.of(fc.getOldSearchTag(), oldSearches).and(fc.getNewSearchTag(), newSearches)
+                .apply(fc)
                 .apply("Write searches", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
         p.run();

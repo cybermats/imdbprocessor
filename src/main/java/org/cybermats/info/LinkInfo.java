@@ -33,6 +33,10 @@ public class LinkInfo implements Serializable {
         this.episodeNumber = InfoHelper.parseInt(row.get("episodeNumber"));
     }
 
+    public static LinkInfo of(TSVRow row) {
+        return new LinkInfo(row);
+    }
+
     public String getTConst() {
         return tConst;
     }

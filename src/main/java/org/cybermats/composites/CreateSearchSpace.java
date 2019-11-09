@@ -16,9 +16,11 @@ import org.cybermats.transforms.SearchGeneratorFn;
 
 public class CreateSearchSpace extends PTransform<PCollection<BasicInfo>, PCollection<Entity>> {
     final ValueProvider<String> searchKind;
+    final ValueProvider<String> projectId;
 
-    public CreateSearchSpace(ValueProvider<String> searchKind) {
+    public CreateSearchSpace(ValueProvider<String> searchKind, ValueProvider<String> projectId) {
         this.searchKind = searchKind;
+        this.projectId = searchKind;
     }
 
     @Override
@@ -34,6 +36,6 @@ public class CreateSearchSpace extends PTransform<PCollection<BasicInfo>, PColle
                         builder.addTitles(c.element().getValue());
                         c.output(builder.build());
                     }
-                })).apply("Create Search Entity", ParDo.of(new BuildSearchDataFn(searchKind)));
+                })).apply("Create Search Entity", ParDo.of(new BuildSearchDataFn(searchKind, projectId)));
     }
 }
