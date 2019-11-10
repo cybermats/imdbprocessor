@@ -1,4 +1,4 @@
 steps:
+# Build and deploy pipeline
   - name: 'gcr.io/cloud-builders/mvn'
-    args:
-      - 'exec:java'
+    args: [ 'compile', 'exec:java' ]
