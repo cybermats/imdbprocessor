@@ -22,8 +22,11 @@ import org.cybermats.composites.CreateBasicsWithRatings;
 import org.cybermats.composites.CreateSearchSpace;
 import org.cybermats.composites.FilterChanged;
 import org.cybermats.data.EpisodeData;
+import org.cybermats.data.ShowData;
 import org.cybermats.info.BasicInfo;
 import org.cybermats.info.LinkInfo;
+import org.cybermats.transforms.BuildEpisodeDataFn;
+import org.cybermats.transforms.BuildShowDataFn;
 import org.cybermats.transforms.ParseLinkInfoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +130,6 @@ class ImdbProcessor {
                 .apply("Map show info over Id", WithKeys.of(BasicInfo::getTConst))
                 .setCoder(KvCoder.of(StringUtf8Coder.of(), AvroCoder.of(BasicInfo.class)));
 
-/*
         PCollection<ShowData> showData =
                 KeyedPCollectionTuple.of(basicTag, seriesById).and(episodeTag, episodesByParents)
                         .apply("Join shows with episodes", CoGroupByKey.create())
@@ -147,15 +149,47 @@ class ImdbProcessor {
                             }
                         }));
 
-        // TODO: Read in old shows and only update updated and new ones, and delete old.
-        showData.apply("Creating Show Entities", ParDo.of(new BuildShowDataFn(options.getShowEntity())))
+
+        /*
+        Write back show data
+         */
+
+        Query.Builder showDataQueryBuilder = Query.newBuilder();
+        showDataQueryBuilder.addKindBuilder().setName("showData");
+        Query showDataQuery = showDataQueryBuilder.build();
+
+        PCollection<Entity> oldShowData = p
+                .apply("Get old show data", DatastoreIO.v1().read().withQuery(showDataQuery).withProjectId(options.getDatastoreProject()));
+
+        PCollection<Entity> newShowData = showData.apply("Creating Show Entities", ParDo.of(new BuildShowDataFn(
+                options.getShowEntity(), options.getDatastoreProject())));
+
+        FilterChanged showDataUpdateCheck = new FilterChanged();
+        PCollectionTuple.of(showDataUpdateCheck.getOldSearchTag(), oldShowData)
+                .and(showDataUpdateCheck.getNewSearchTag(), newShowData)
+                .apply("Filter out unchanged shows", showDataUpdateCheck)
                 .apply("Write shows", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
-        // TODO: Read in old episodes and only update updated and new ones, and delete old.
-        showData.apply("Creating Episode Entities",
-                ParDo.of(new BuildEpisodeDataFn(options.getEpisodeEntity(), options.getShowEntity())))
+
+        /*
+        Write back episode data
+         */
+        Query.Builder episodeDataQueryBuilder = Query.newBuilder();
+        episodeDataQueryBuilder.addKindBuilder().setName("showData");
+        Query episodeDataQuery = episodeDataQueryBuilder.build();
+
+        PCollection<Entity> oldEpisodeData = p
+                .apply("Get old episode data", DatastoreIO.v1().read().withQuery(episodeDataQuery).withProjectId(options.getDatastoreProject()));
+
+        PCollection<Entity> newEpisodeData = showData.apply("Creating Episode Entities",
+                ParDo.of(new BuildEpisodeDataFn(
+                        options.getEpisodeEntity(), options.getShowEntity(), options.getDatastoreProject())));
+
+        FilterChanged episodeDataUpdateCheck = new FilterChanged();
+        PCollectionTuple.of(episodeDataUpdateCheck.getOldSearchTag(), oldEpisodeData)
+                .and(episodeDataUpdateCheck.getNewSearchTag(), newEpisodeData)
+                .apply("Filter out unchanged shows", episodeDataUpdateCheck)
                 .apply("Write episodes", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
-*/
 
       /*
           Create the search space
@@ -172,9 +206,9 @@ class ImdbProcessor {
                 .apply("Create Search Space", new CreateSearchSpace(
                         options.getSearchEntity(), options.getDatastoreProject()));
 
-        FilterChanged filterChanged = new FilterChanged();
-        PCollectionTuple.of(filterChanged.getOldSearchTag(), oldSearches).and(filterChanged.getNewSearchTag(), newSearches)
-                .apply("Filter out unchanged searches", filterChanged)
+        FilterChanged searchUpdateCheck = new FilterChanged();
+        PCollectionTuple.of(searchUpdateCheck.getOldSearchTag(), oldSearches).and(searchUpdateCheck.getNewSearchTag(), newSearches)
+                .apply("Filter out unchanged searches", searchUpdateCheck)
                 .apply("Write searches", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
         p.run();

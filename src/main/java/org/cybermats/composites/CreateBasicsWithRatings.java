@@ -61,8 +61,8 @@ public class CreateBasicsWithRatings extends PTransform<PCollectionTuple, PColle
                         if (ratings != null) {
                             Float rating = ratings.getRating();
                             for (BasicInfo b : e.getValue().getAll(basicInfoTag)) {
-                                b.setRating(rating);
-                                c.output(b);
+                                BasicInfo nb = b.getBuilder().setRating(rating).build();
+                                c.output(nb);
                             }
                         }
                     }

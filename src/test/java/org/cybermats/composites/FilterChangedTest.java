@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import static com.google.datastore.v1.client.DatastoreHelper.makeKey;
 
+@SuppressWarnings("SameParameterValue")
 public class FilterChangedTest {
     @Rule
     public final transient TestPipeline testPipeline = TestPipeline.create();
@@ -35,12 +36,12 @@ public class FilterChangedTest {
     public void TestPositive() {
         Entity oldEnt = createEntity("pid", "kind", "id", "prop", "value");
         Entity newEnt = createEntity("pid", "kind", "id", "prop", "value");
-        PCollection<Entity> oldEnts = testPipeline.apply("Phony old searches", Create.of(oldEnt));
-        PCollection<Entity> newEnts = testPipeline.apply("Phony new searches", Create.of(newEnt));
+        PCollection<Entity> oldEntities = testPipeline.apply("Phony old searches", Create.of(oldEnt));
+        PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
         FilterChanged fc = new FilterChanged();
-        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEnts)
-                .and(fc.getNewSearchTag(), newEnts)
+        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+                .and(fc.getNewSearchTag(), newEntities)
                 .apply("Find updated searches", fc);
 
         PAssert.that(result).empty();
@@ -51,12 +52,12 @@ public class FilterChangedTest {
     public void TestUpdated() {
         Entity oldEnt = createEntity("pid", "kind", "id", "prop", "value");
         Entity newEnt = createEntity("pid", "kind", "id", "prop", "value2");
-        PCollection<Entity> oldEnts = testPipeline.apply("Phony old searches", Create.of(oldEnt));
-        PCollection<Entity> newEnts = testPipeline.apply("Phony new searches", Create.of(newEnt));
+        PCollection<Entity> oldEntities = testPipeline.apply("Phony old searches", Create.of(oldEnt));
+        PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
         FilterChanged fc = new FilterChanged();
-        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEnts)
-                .and(fc.getNewSearchTag(), newEnts)
+        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+                .and(fc.getNewSearchTag(), newEntities)
                 .apply("Find updated searches", fc);
 
         PAssert.that(result).containsInAnyOrder(newEnt);
@@ -66,12 +67,12 @@ public class FilterChangedTest {
     @Test
     public void TestNew() {
         Entity newEnt = createEntity("pid", "kind", "id", "prop", "value");
-        PCollection<Entity> oldEnts = testPipeline.apply("Phony old searches", Create.empty(TypeDescriptor.of(Entity.class)));
-        PCollection<Entity> newEnts = testPipeline.apply("Phony new searches", Create.of(newEnt));
+        PCollection<Entity> oldEntities = testPipeline.apply("Phony old searches", Create.empty(TypeDescriptor.of(Entity.class)));
+        PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
         FilterChanged fc = new FilterChanged();
-        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEnts)
-                .and(fc.getNewSearchTag(), newEnts)
+        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+                .and(fc.getNewSearchTag(), newEntities)
                 .apply("Find updated searches", fc);
 
         PAssert.that(result).containsInAnyOrder(newEnt);
@@ -81,12 +82,12 @@ public class FilterChangedTest {
     @Test
     public void TestOld() {
         Entity oldEnt = createEntity("pid", "kind", "id", "prop", "value");
-        PCollection<Entity> oldEnts = testPipeline.apply("Phony old searches", Create.of(oldEnt));
-        PCollection<Entity> newEnts = testPipeline.apply("Phony new searches", Create.empty(TypeDescriptor.of(Entity.class)));
+        PCollection<Entity> oldEntities = testPipeline.apply("Phony old searches", Create.of(oldEnt));
+        PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.empty(TypeDescriptor.of(Entity.class)));
 
         FilterChanged fc = new FilterChanged();
-        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEnts)
-                .and(fc.getNewSearchTag(), newEnts)
+        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+                .and(fc.getNewSearchTag(), newEntities)
                 .apply("Find updated searches", fc);
 
         PAssert.that(result).empty();

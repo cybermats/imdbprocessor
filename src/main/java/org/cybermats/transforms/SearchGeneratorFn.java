@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SearchGeneratorFn extends DoFn<BasicInfo, KV<String, String>> {
+    @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(SearchGeneratorFn.class);
 
     @ProcessElement

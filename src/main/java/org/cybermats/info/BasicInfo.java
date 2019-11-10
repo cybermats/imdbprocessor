@@ -7,25 +7,25 @@ import org.cybermats.helpers.InfoHelper;
 import org.cybermats.helpers.TSVRow;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 @DefaultCoder(AvroCoder.class)
 public class BasicInfo implements Serializable {
-    @Nullable
     private final String tConst;
     @Nullable
-    private String titleType;
+    private final String titleType;
     @Nullable
-    private String primaryTitle;
+    private final String primaryTitle;
     @Nullable
-    private Integer startYear;
+    private final Integer startYear;
     @Nullable
-    private Integer endYear;
+    private final Integer endYear;
     @Nullable
-    private String[] genres;
+    private final String[] genres;
     @Nullable
-    private Float rating;
-
+    private final Float rating;
     private BasicInfo() {
         tConst = null;
         titleType = null;
@@ -33,33 +33,51 @@ public class BasicInfo implements Serializable {
         startYear = null;
         endYear = null;
         genres = null;
+        rating = null;
     }
 
-    private BasicInfo(String tconst) {
-        this.tConst = tconst;
-        titleType = null;
-        primaryTitle = null;
-        startYear = null;
-        endYear = null;
-        genres = null;
+    private BasicInfo(
+            String tConst,
+            String titleType,
+            String primaryTitle,
+            Integer startYear,
+            Integer endYear,
+            String[] genres,
+            Float rating
+    ) {
+        this.tConst = tConst;
+        this.titleType = titleType;
+        this.primaryTitle = primaryTitle;
+        this.startYear = startYear;
+        this.endYear = endYear;
+        this.genres = genres;
+        this.rating = rating;
     }
-
-    private BasicInfo(TSVRow row) throws NumberFormatException {
-        this.tConst = InfoHelper.parseString(row.get("tconst"));
-        this.titleType = InfoHelper.parseString(row.get("titleType"));
-        this.primaryTitle = InfoHelper.parseString(row.get("primaryTitle"));
-        this.startYear = InfoHelper.parseInt(row.get("startYear"));
-        this.endYear = InfoHelper.parseInt(row.get("endYear"));
-        this.genres = InfoHelper.parseStringArray(row.get("genres"));
-    }
-
 
     public static BasicInfo of(TSVRow row) {
-        return new BasicInfo(row);
+        return new BasicInfo.Builder(row).build();
     }
 
-    public static BasicInfo of(String tconst) {
-        return new BasicInfo(tconst);
+    public Builder getBuilder() {
+        return new Builder(tConst, titleType, primaryTitle, startYear, endYear, genres, rating);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BasicInfo basicInfo = (BasicInfo) o;
+
+        if (!Objects.equals(tConst, basicInfo.tConst)) return false;
+        if (!Objects.equals(titleType, basicInfo.titleType)) return false;
+        if (!Objects.equals(primaryTitle, basicInfo.primaryTitle))
+            return false;
+        if (!Objects.equals(startYear, basicInfo.startYear)) return false;
+        if (!Objects.equals(endYear, basicInfo.endYear)) return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(genres, basicInfo.genres)) return false;
+        return Objects.equals(rating, basicInfo.rating);
     }
 
 
@@ -83,7 +101,6 @@ public class BasicInfo implements Serializable {
         return endYear;
     }
 
-    @SuppressWarnings("unused")
     public String[] getGenres() {
         return genres;
     }
@@ -92,35 +109,93 @@ public class BasicInfo implements Serializable {
         return rating;
     }
 
-    public BasicInfo setRating(Float rating) {
-        this.rating = rating;
-        return this;
+    @Override
+    public int hashCode() {
+        int result = (tConst != null ? tConst.hashCode() : 0);
+        result = 31 * result + (titleType != null ? titleType.hashCode() : 0);
+        result = 31 * result + (primaryTitle != null ? primaryTitle.hashCode() : 0);
+        result = 31 * result + (startYear != null ? startYear.hashCode() : 0);
+        result = 31 * result + (endYear != null ? endYear.hashCode() : 0);
+        result = 31 * result + Arrays.hashCode(genres);
+        result = 31 * result + (rating != null ? rating.hashCode() : 0);
+        return result;
     }
 
-    public BasicInfo setTitleType(String titleType) {
-        this.titleType = titleType;
-        return this;
+    @Override
+    public String toString() {
+        return "BasicInfo{" +
+                "tConst='" + tConst + '\'' +
+                ", titleType='" + titleType + '\'' +
+                ", primaryTitle='" + primaryTitle + '\'' +
+                ", startYear=" + startYear +
+                ", endYear=" + endYear +
+                ", genres=" + Arrays.toString(genres) +
+                ", rating=" + rating +
+                '}';
     }
 
-    public BasicInfo setPrimaryTitle(String primaryTitle) {
-        this.primaryTitle = primaryTitle;
-        return this;
+    public static class Builder {
+        private final String tConst;
+        @Nullable
+        private String titleType;
+        @Nullable
+        private String primaryTitle;
+        @Nullable
+        private Integer startYear;
+        @Nullable
+        private Integer endYear;
+        @Nullable
+        private String[] genres;
+        @Nullable
+        private Float rating;
+
+        public Builder(TSVRow row) {
+            this.tConst = InfoHelper.parseString(row.get("tconst"));
+            this.titleType = InfoHelper.parseString(row.get("titleType"));
+            this.primaryTitle = InfoHelper.parseString(row.get("primaryTitle"));
+            this.startYear = InfoHelper.parseInt(row.get("startYear"));
+            this.endYear = InfoHelper.parseInt(row.get("endYear"));
+            this.genres = InfoHelper.parseStringArray(row.get("genres"));
+        }
+
+        public Builder(
+                String tConst,
+                String titleType,
+                String primaryTitle,
+                Integer startYear,
+                Integer endYear,
+                String[] genres,
+                Float rating
+        ) {
+            this.tConst = tConst;
+            this.titleType = titleType;
+            this.primaryTitle = primaryTitle;
+            this.startYear = startYear;
+            this.endYear = endYear;
+            this.genres = genres;
+            this.rating = rating;
+        }
+
+        public Builder(String tConst) {
+            this.tConst = tConst;
+        }
+
+        public Builder setPrimaryTitle(String primaryTitle) {
+            this.primaryTitle = primaryTitle;
+            return this;
+        }
+
+        public Builder setRating(Float rating) {
+            this.rating = rating;
+            return this;
+        }
+
+        public BasicInfo build() {
+            return new BasicInfo(
+                    tConst, titleType, primaryTitle,
+                    startYear, endYear, genres, rating
+            );
+        }
+
     }
-
-    public BasicInfo setStartYear(Integer startYear) {
-        this.startYear = startYear;
-        return this;
-    }
-
-    public BasicInfo setEndYear(Integer endYear) {
-        this.endYear = endYear;
-        return this;
-    }
-
-    public BasicInfo setGenres(String[] genres) {
-        this.genres = genres;
-        return this;
-    }
-
-
 }

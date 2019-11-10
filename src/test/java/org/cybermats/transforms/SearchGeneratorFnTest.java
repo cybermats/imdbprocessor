@@ -18,7 +18,7 @@ public class SearchGeneratorFnTest {
     public final transient TestPipeline testPipeline = TestPipeline.create();
 
     private void harness(String id, String title, String[] terms) {
-        BasicInfo b = BasicInfo.of(id).setPrimaryTitle(title);
+        BasicInfo b = new BasicInfo.Builder(id).setPrimaryTitle(title).build();
         PCollection<BasicInfo> input = testPipeline.apply(Create.of(b));
         SearchGeneratorFn fn = new SearchGeneratorFn();
 
