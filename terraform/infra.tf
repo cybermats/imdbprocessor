@@ -1,7 +1,6 @@
 terraform {
   backend "gcs" {
     bucket = "tf-state-gcp-imdb-processing"
-    region = "us-central1"
     prefix = "terraform/state"
   }
 }
