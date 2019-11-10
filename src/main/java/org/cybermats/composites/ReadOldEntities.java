@@ -10,7 +10,7 @@ import org.apache.beam.sdk.values.PCollection;
 
 public class ReadOldEntities extends PTransform<PBegin, PCollection<Entity>> {
     private final ValueProvider<String> kind;
-    private ValueProvider<String> projectId;
+    private final ValueProvider<String> projectId;
 
 
     private ReadOldEntities(ValueProvider<String> kind, ValueProvider<String> projectId) {
@@ -22,7 +22,7 @@ public class ReadOldEntities extends PTransform<PBegin, PCollection<Entity>> {
         return new ReadOldEntities(kind, projectId);
     }
 
-    private static ValueProvider createGqlQuery(ValueProvider<String> kind) {
+    private static ValueProvider<String> createGqlQuery(ValueProvider<String> kind) {
         return ValueProvider.NestedValueProvider.of(
                 kind, (SerializableFunction<String, String>) input -> String.format("SELECT * FROM %s", input));
     }
