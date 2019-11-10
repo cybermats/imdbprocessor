@@ -1,6 +1,20 @@
 steps:
-# Build and deploy pipeline
+# 1. Fetch the source code
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', 'https://github.com/cybermats/imdbprocessor.git']
+# 2a. Initialize terraform
+  - name: 'hashicorp/terraform'
+    args: ['init']
+    dir: 'terraform'
+# 2b. Create GCS buckets
+  - name: 'hashicorp/terraform'
+    id: 'terraform-apply'
+    args: ['apply', '-auto-approve']
+    dir: 'terraform'
+# 3a. Build and deploy Dataflow pipeline
   - name: 'gcr.io/cloud-builders/mvn'
     args: [ 'compile', 'exec:java' ]
+    waitFor: ['terraform-apply']
+# 3b. Add meta data to Dataflow template
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', 'imdbprocessor_metadata', 'gs://matsf-cloud-graph/templates/imdbprocessor_metadata']
