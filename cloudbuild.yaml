@@ -2,3 +2,5 @@ steps:
 # Build and deploy pipeline
   - name: 'gcr.io/cloud-builders/mvn'
     args: [ 'compile', 'exec:java' ]
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', 'imdbprocessor_metadata', 'gs://matsf-cloud-graph/templates/imdbprocessor_metadata']
