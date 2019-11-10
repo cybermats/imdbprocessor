@@ -1,0 +1,36 @@
+{
+  "desciption": "Pipeline for processing the IMDB TSV files into a Datastore format.",
+  "name": "Imdb Processing",
+  "parameters": [
+    {
+      "name": "inputDir",
+      "label": "Input directory",
+      "helpText": "Directory or Bucket where the files will be located.",
+      "regexes": ["^gs:\\/\\/[a-zA-Z0-9\\-\\/]*$"]
+    },
+    {
+      "name": "showEntity",
+      "label": "Show Kind",
+      "helpText": "The Datastore Entity Kind for the Shows.",
+      "regexes": ["^[a-zA-Z0-9]+$"]
+    },
+    {
+      "name": "episodeEntity",
+      "label": "Episody Kind",
+      "helpText": "The Datastore Entity Kind for the Episodes.",
+      "regexes": ["^[a-zA-Z0-9]+$"]
+    },
+    {
+      "name": "searchEntity",
+      "label": "Search Kind",
+      "helpText": "The Datastore Entity Kind for the Search register.",
+      "regexes": ["^[a-zA-Z0-9]+$"]
+    },
+    {
+      "name": "datastoreProject",
+      "label": "Datastore Project ID",
+      "helpText": "The Project ID where the Datastore resides.",
+      "regexes": ["^[a-z][a-z0-9\\-]{4,}[a-z0-9]$"]
+    }
+  ]
+}
