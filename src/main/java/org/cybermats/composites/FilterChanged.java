@@ -9,11 +9,8 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FilterChanged extends PTransform<PCollectionTuple, PCollection<Entity>> {
-    private static final Logger LOG = LoggerFactory.getLogger(FilterChanged.class);
     private final TupleTag<Entity> newSearchTag = new TupleTag<Entity>() {
     };
     private final TupleTag<Entity> oldSearchTag = new TupleTag<Entity>() {
@@ -47,13 +44,8 @@ public class FilterChanged extends PTransform<PCollectionTuple, PCollection<Enti
                         Entity newSearch = e.getValue().getOnly(newSearchTag, null);
                         if (newSearch != null) {
                             if (!newSearch.equals(oldSearch)) {
-                                LOG.info("Old: {}, New: {} are Different", oldSearch, newSearch);
                                 c.output(newSearch);
-                            } else {
-                                LOG.info("Old: {}, New: {} are Identical", oldSearch, newSearch);
                             }
-                        } else {
-                            LOG.info("Old: {}, New is null", oldSearch);
                         }
                     }
                 }));
