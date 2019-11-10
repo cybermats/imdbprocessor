@@ -1,7 +1,6 @@
 package org.cybermats;
 
 import com.google.datastore.v1.Entity;
-import com.google.datastore.v1.Query;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.KvCoder;
@@ -21,6 +20,7 @@ import org.apache.beam.sdk.values.TupleTag;
 import org.cybermats.composites.CreateBasicsWithRatings;
 import org.cybermats.composites.CreateSearchSpace;
 import org.cybermats.composites.FilterChanged;
+import org.cybermats.composites.ReadOldEntities;
 import org.cybermats.data.EpisodeData;
 import org.cybermats.data.ShowData;
 import org.cybermats.info.BasicInfo;
@@ -154,12 +154,9 @@ class ImdbProcessor {
         Write back show data
          */
 
-        Query.Builder showDataQueryBuilder = Query.newBuilder();
-        showDataQueryBuilder.addKindBuilder().setName("showData");
-        Query showDataQuery = showDataQueryBuilder.build();
-
         PCollection<Entity> oldShowData = p
-                .apply("Get old show data", DatastoreIO.v1().read().withQuery(showDataQuery).withProjectId(options.getDatastoreProject()));
+                .apply("Get old show data",
+                        ReadOldEntities.of(options.getShowEntity(), options.getDatastoreProject()));
 
         PCollection<Entity> newShowData = showData.apply("Creating Show Entities", ParDo.of(new BuildShowDataFn(
                 options.getShowEntity(), options.getDatastoreProject())));
@@ -174,12 +171,9 @@ class ImdbProcessor {
         /*
         Write back episode data
          */
-        Query.Builder episodeDataQueryBuilder = Query.newBuilder();
-        episodeDataQueryBuilder.addKindBuilder().setName("showData");
-        Query episodeDataQuery = episodeDataQueryBuilder.build();
-
         PCollection<Entity> oldEpisodeData = p
-                .apply("Get old episode data", DatastoreIO.v1().read().withQuery(episodeDataQuery).withProjectId(options.getDatastoreProject()));
+                .apply("Get old episode data",
+                        ReadOldEntities.of(options.getEpisodeEntity(), options.getDatastoreProject()));
 
         PCollection<Entity> newEpisodeData = showData.apply("Creating Episode Entities",
                 ParDo.of(new BuildEpisodeDataFn(
@@ -188,19 +182,16 @@ class ImdbProcessor {
         FilterChanged episodeDataUpdateCheck = new FilterChanged();
         PCollectionTuple.of(episodeDataUpdateCheck.getOldSearchTag(), oldEpisodeData)
                 .and(episodeDataUpdateCheck.getNewSearchTag(), newEpisodeData)
-                .apply("Filter out unchanged shows", episodeDataUpdateCheck)
+                .apply("Filter out unchanged episodes", episodeDataUpdateCheck)
                 .apply("Write episodes", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
 
       /*
           Create the search space
          */
 
-        Query.Builder qb = Query.newBuilder();
-        qb.addKindBuilder().setName("search");
-        Query q = qb.build();
-
         PCollection<Entity> oldSearches = p
-                .apply(DatastoreIO.v1().read().withQuery(q).withProjectId(options.getDatastoreProject()));
+                .apply("Get old search space",
+                        ReadOldEntities.of(options.getSearchEntity(), options.getDatastoreProject()));
 
         PCollection<Entity> newSearches = allTvSeries
                 .apply("Create Search Space", new CreateSearchSpace(
