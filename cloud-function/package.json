@@ -1,0 +1,22 @@
+{
+  "name": "cloud-function",
+  "version": "1.0.0",
+  "description": "Triggers a processing of the imdb data.",
+  "main": "index.js",
+  "scripts": {
+    "test": "index-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cybermats/imdbprocessor.git"
+  },
+  "author": "Mats Fredriksson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cybermats/imdbprocessor/issues"
+  },
+  "homepage": "https://github.com/cybermats/imdbprocessor#readme",
+  "dependencies": {
+    "@google-cloud/functions-emulator": "^1.0.0-beta.6"
+  }
+}
