@@ -1,0 +1,3 @@
+steps:
+  - name: 'gcr.io/cloud-builders/mvn'
+    args: ['compile', 'exec:java', '-Dexec.mainClass=org.cybermats.imdbprocessor.ImdbProcessor', '-Dexec.args="--project=matsf-cloud-graph --stagingLocation=gs://matsf-cloud-graph/staging --tempLocation=gs://matsf-cloud-graph/temp --templateLocation=gs://matsf-cloud-graph/templates/imdbprocessor --runner=DataflowRunner --region=us-central1 --inputDir=gs://matsf-cloud-graph/ --showEntity=showInfo --episodeEntity=episodeInfo --searchEntity=search --datastoreProject=matsf-cloud-graph"']
