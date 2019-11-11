@@ -41,23 +41,44 @@ resource "google_storage_bucket_object" "imdbconfig" {
   name = var.config_files
   bucket = google_storage_bucket.backend-bucket.name
   source = var.config_files
+  depends_on = [google_storage_bucket.backend-bucket]
 }
 
 resource "google_storage_object_acl" "imdbconfig_acl" {
   bucket = google_storage_bucket.backend-bucket.name
   object = google_storage_bucket_object.imdbconfig.output_name
-
   role_entity = ["READER:allUsers", "OWNER:project-owners-251342811543", "OWNER:project-editors-251342811543"]
+  depends_on = [google_storage_bucket_object.imdbconfig]
 }
 
 resource "google_storage_bucket" "input-bucket" {
   name = var.input_name
   storage_class = "REGIONAL"
   location = "us-central1"
+
+}
+
+resource "google_storage_bucket_iam_binding" "input-bucket-iam-legacyBucketReader" {
+  bucket = google_storage_bucket.input-bucket.name
+  members = ["serviceAccount:project-${var.project_number}@storage-transfer-service.iam.gserviceaccount.com"]
+  role = "roles/storage.legacyBucketReader"
+  depends_on = [google_storage_bucket.input-bucket]
+}
+
+resource "google_storage_bucket_iam_binding" "input-bucket-iam-objectAdmin" {
+  bucket = google_storage_bucket.input-bucket.name
+  members = ["serviceAccount:project-${var.project_number}@storage-transfer-service.iam.gserviceaccount.com"]
+  role = "roles/storage.objectAdmin"
+  depends_on = [google_storage_bucket.input-bucket]
 }
 
 resource "google_storage_transfer_job" "imdb_nightly" {
   description = "Nightly download of IMDB data"
+  depends_on = [
+    google_storage_bucket_iam_binding.input-bucket-iam-legacyBucketReader,
+    google_storage_bucket_iam_binding.input-bucket-iam-objectAdmin,
+    google_storage_object_acl.imdbconfig_acl
+  ]
   schedule {
     start_time_of_day {
       hours = 3
@@ -79,7 +100,7 @@ resource "google_storage_transfer_job" "imdb_nightly" {
       overwrite_objects_already_existing_in_sink = true
     }
     gcs_data_sink {
-      bucket_name = google_storage_bucket.backend-bucket.name
+      bucket_name = google_storage_bucket.input-bucket.name
     }
   }
 }
