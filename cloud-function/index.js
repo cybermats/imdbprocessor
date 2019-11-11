@@ -2,6 +2,7 @@ const google = require("googleapis");
 exports.goWithTheDataFlow = function(req, res) {
   google.auth.getApplicationDefault(function(err, authClient) {
     if (err) {
+      res.status(500).send("I failed you");
       throw err;
     }
     // See https://cloud.google.com/compute/docs/authentication for more information on scopes
@@ -14,10 +15,8 @@ exports.goWithTheDataFlow = function(req, res) {
     }
     google.auth.getDefaultProjectId(function(err, projectId) {
       if (err || !projectId) {
-        console.error(
-          `Problems getting projectId (${projectId}). Err was: `,
-          err
-        );
+        console.error(`Problems getting projectId (${projectId}). Err was: `, err);
+        res.status(500).send("I failed you");
         throw err;
       }
       const dataflow = google.dataflow({ version: "v1b3", auth: authClient });
@@ -40,12 +39,12 @@ exports.goWithTheDataFlow = function(req, res) {
         },
         function(err, response) {
           if (err) {
-            console.error(
-              "Problem running dataflow template, error was: ",
-              err
-            );
+            console.error("Problem running dataflow template, error was: ",err);
+            res.status(500).send("I failed you");
+          } else {
+            console.log("Dataflow template response: ", response);
+            res.status(200).send("It worked");
           }
-          console.log("Dataflow template response: ", response);
         }
       );
     });
