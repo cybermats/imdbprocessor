@@ -1,5 +1,5 @@
 const google = require("googleapis");
-exports.goWithTheDataFlow = function(event, callback) {
+exports.goWithTheDataFlow = function(req, res) {
   google.auth.getApplicationDefault(function(err, authClient) {
     if (err) {
       throw err;
@@ -26,7 +26,7 @@ exports.goWithTheDataFlow = function(event, callback) {
           projectId: projectId,
           resource: {
             parameters: {
-              inputDir: "gs://graph-backend/input/",
+              inputDir: "gs://graph-input/datasets.imdbws.com/",
               showEntity: "showInfo",
               episodeEntity: "episodeInfo",
               searchEntity: "searchInfo",
@@ -46,7 +46,6 @@ exports.goWithTheDataFlow = function(event, callback) {
             );
           }
           console.log("Dataflow template response: ", response);
-          callback();
         }
       );
     });
