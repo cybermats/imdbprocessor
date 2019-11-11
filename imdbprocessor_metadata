@@ -6,7 +6,7 @@
       "name": "inputDir",
       "label": "Input directory",
       "helpText": "Directory or Bucket where the files will be located.",
-      "regexes": ["^gs:\\/\\/[a-zA-Z0-9\\-\\/]*$"]
+      "regexes": ["^gs:\\/\\/[a-zA-Z0-9\\-\\/\\.]*$"]
     },
     {
       "name": "showEntity",
