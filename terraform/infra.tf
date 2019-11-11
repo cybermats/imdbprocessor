@@ -79,7 +79,7 @@ resource "google_storage_transfer_job" "imdb_nightly" {
       overwrite_objects_already_existing_in_sink = true
     }
     gcs_data_sink {
-      bucket_name = google_storage_bucket.backend-bucket.url
+      bucket_name = google_storage_bucket.backend-bucket.name
     }
   }
 }
