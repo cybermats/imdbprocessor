@@ -35,7 +35,7 @@ exports.goWithTheDataFlow = function(event, callback) {
             jobName:
               "called-from-a-cloud-function-batch-pipeline-" +
               new Date().getTime(),
-            gcsPath: "gs://graph-backend/template/imdbprocessor"
+            gcsPath: "gs://graph-backend/templates/imdbprocessor"
           }
         },
         function(err, response) {
