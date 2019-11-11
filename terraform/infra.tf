@@ -22,9 +22,10 @@ variable "config_files" {
   default = "config/imdb-urls.tsv"
 }
 
-resource "google_project_service" "project" {
-  service = "storagetransfer.googleapis.com"
-}
+# Not enough rights for the build user. Enabled manually
+#resource "google_project_service" "project" {
+#  service = "storagetransfer.googleapis.com"
+#}
 
 resource "google_storage_bucket" "backend-bucket" {
   name = var.backend_name
