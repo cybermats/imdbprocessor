@@ -19,7 +19,7 @@ variable "input-name" {
 }
 
 variable "config_files" {
-  default = 'config/imdb-urls.tsv'
+  default = "config/imdb-urls.tsv"
 }
 
 resource "google_storage_bucket" "backend-bucket" {
