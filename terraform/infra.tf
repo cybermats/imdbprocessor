@@ -10,6 +10,10 @@ provider "google" {
   region = "us-central1"
 }
 
+variable "project_number" {
+  default = "251342811543"
+}
+
 variable "backend_name" {
   default = "graph-backend"
 }
@@ -43,8 +47,7 @@ resource "google_storage_object_acl" "imdbconfig_acl" {
   bucket = google_storage_bucket.backend-bucket.name
   object = google_storage_bucket_object.imdbconfig.output_name
 
-  role_entity = [
-    "READER:allUsers"]
+  role_entity = ["READER:allUsers", "OWNER:project-owners-251342811543", "OWNER:project-editors-251342811543"]
 }
 
 resource "google_storage_bucket" "input-bucket" {
