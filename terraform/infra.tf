@@ -10,11 +10,11 @@ provider "google" {
   region = "us-central1"
 }
 
-variable "backend-name" {
+variable "backend_name" {
   default = "graph-backend"
 }
 
-variable "input-name" {
+variable "input_name" {
   default = "graph-input"
 }
 
@@ -22,8 +22,12 @@ variable "config_files" {
   default = "config/imdb-urls.tsv"
 }
 
+resource "google_project_service" "project" {
+  service = "storagetransfer.googleapis.com"
+}
+
 resource "google_storage_bucket" "backend-bucket" {
-  name = var.backend-name
+  name = var.backend_name
   storage_class = "REGIONAL"
   location = "us-central1"
 }
@@ -34,21 +38,21 @@ resource "google_storage_bucket_object" "imdbconfig" {
   source = var.config_files
 }
 
-resource "google_storage_object_acl" "imdbconfig-acl" {
+resource "google_storage_object_acl" "imdbconfig_acl" {
   bucket = google_storage_bucket.backend-bucket.name
   object = google_storage_bucket_object.imdbconfig.output_name
 
   role_entity = [
-    "READER:user-allUsers"]
+    "READER:allUsers"]
 }
 
 resource "google_storage_bucket" "input-bucket" {
-  name = var.input-name
+  name = var.input_name
   storage_class = "REGIONAL"
   location = "us-central1"
 }
 
-resource "google_storage_transfer_job" "imdb-nightly" {
+resource "google_storage_transfer_job" "imdb_nightly" {
   description = "Nightly download of IMDB data"
   schedule {
     start_time_of_day {
