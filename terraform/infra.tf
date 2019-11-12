@@ -113,8 +113,8 @@ data "archive_file" "gcs_trigger" {
 }
 
 resource "google_storage_bucket_object" "gcs_trigger_pkg" {
-  bucket = "${google_storage_bucket.backend-bucket.name}/functions"
-  name = "gcs_trigger.zip"
+  name = "/functions/gcs_trigger.zip"
+  bucket = google_storage_bucket.backend-bucket.name
   source = data.archive_file.gcs_trigger.output_path
   depends_on = [google_storage_bucket.backend-bucket, data.archive_file.gcs_trigger]
 }
