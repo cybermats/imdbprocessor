@@ -109,7 +109,7 @@ resource "google_storage_transfer_job" "imdb_nightly" {
 data "archive_file" "gcs_trigger" {
   type = "zip"
   output_path = "${path.root}/../files/gcs_trigger.zip"
-  source_file = "${path.root}/../cloud-function/gcstrigger/index.js"
+  source_dir = "${path.root}/../cloud-function/gcstrigger/"
 }
 
 resource "google_storage_bucket_object" "gcs_trigger_pkg" {
