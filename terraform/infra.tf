@@ -23,8 +23,9 @@ variable "input_name" {
 }
 
 variable "config_files" {
-  default = "config/imdb-urls.tsv"
+  default = "../config/imdb-urls.tsv"
 }
+
 
 # Not enough rights for the build user. Enabled manually
 #resource "google_project_service" "project" {
@@ -103,4 +104,30 @@ resource "google_storage_transfer_job" "imdb_nightly" {
       bucket_name = google_storage_bucket.input-bucket.name
     }
   }
+}
+
+data "archive_file" "gcs_trigger" {
+  type = "zip"
+  output_path = "${path.root}/../files/gcs_trigger.zip"
+  source_file = "${path.root}/../cloud-function/gcstrigger/index.js"
+}
+
+resource "google_storage_bucket_object" "gcs_trigger_pkg" {
+  bucket = "${google_storage_bucket.backend-bucket.name}/functions"
+  name = "gcs_trigger.zip"
+  source = data.archive_file.gcs_trigger.output_path
+  depends_on = [google_storage_bucket.backend-bucket, data.archive_file.gcs_trigger]
+}
+
+resource "google_cloudfunctions_function" "gcs_trigger_func" {
+  name = "gcs_trigger_dataflow"
+  source_archive_bucket = google_storage_bucket_object.gcs_trigger_pkg.bucket
+  source_archive_object = google_storage_bucket_object.gcs_trigger_pkg.name
+  runtime = "nodejs8"
+  entry_point = "gcs_trigger_dataflow"
+  event_trigger {
+    event_type = "google.storage.object.finalize"
+    resource = google_storage_bucket.input-bucket.name
+  }
+  depends_on = [google_storage_bucket_object.gcs_trigger_pkg]
 }

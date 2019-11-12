@@ -68,3 +68,5 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 /target/
 /terraform/.terraform/
+/cloud-function/gcstrigger/node_modules/
+/files/
