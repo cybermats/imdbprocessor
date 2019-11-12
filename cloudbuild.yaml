@@ -22,5 +22,5 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'function-deploy'
     args: ['functions', 'deploy', 'goWithTheDataFlow', '--stage-bucket=gs://graph-backend', '--trigger-http', '--runtime=nodejs8']
-    dir: 'cloud-function'
+    dir: 'cloud-functions/dataflow'
     waitFor: ['terraform-apply']
