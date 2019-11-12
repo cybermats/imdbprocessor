@@ -18,9 +18,3 @@ steps:
 # 3b. Add meta data to Dataflow template
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', 'imdbprocessor_metadata', 'gs://graph-backend/templates/imdbprocessor_metadata']
-# 4. Deploy the Cloud Function
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'function-deploy'
-    args: ['functions', 'deploy', 'goWithTheDataFlow', '--stage-bucket=gs://graph-backend', '--trigger-http', '--runtime=nodejs8']
-    dir: 'cloud-functions/dataflow'
-    waitFor: ['terraform-apply']
