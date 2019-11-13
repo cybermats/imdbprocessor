@@ -5,12 +5,12 @@ steps:
 # 2a. Initialize terraform
   - name: 'hashicorp/terraform'
     args: ['init']
-    dir: 'terraform'
+    dir: 'infrastructure'
 # 2b. Create GCS buckets
   - name: 'hashicorp/terraform'
     id: 'terraform-apply'
     args: ['apply', '-auto-approve']
-    dir: 'terraform'
+    dir: 'infrastructure'
 # 3a. Build and deploy Dataflow pipeline
   - name: 'gcr.io/cloud-builders/mvn'
     args: [ 'compile', 'exec:java' ]

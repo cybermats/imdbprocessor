@@ -23,7 +23,7 @@ variable "input_name" {
 }
 
 variable "config_files" {
-  default = "../config/imdb-urls.tsv"
+  default = "config/imdb-urls.tsv"
 }
 
 
@@ -108,12 +108,12 @@ resource "google_storage_transfer_job" "imdb_nightly" {
 
 data "archive_file" "gcs_trigger" {
   type = "zip"
-  output_path = "${path.root}/../files/gcs_trigger.zip"
+  output_path = "${path.root}/files/gcs_trigger.zip"
   source_dir = "${path.root}/../cloud-function/gcstrigger/"
 }
 
 resource "google_storage_bucket_object" "gcs_trigger_pkg" {
-  name = "/functions/gcs_trigger.zip"
+  name = "functions/gcs_trigger.zip"
   bucket = google_storage_bucket.backend-bucket.name
   source = data.archive_file.gcs_trigger.output_path
   depends_on = [google_storage_bucket.backend-bucket, data.archive_file.gcs_trigger]
