@@ -55,9 +55,9 @@ function goWithTheDataFlow() {
 
 async function getUpdateMinMax() {
     const storage = new Storage();
-    const bucketName = 'graph-input-a';
-
+    const bucketName = 'graph-input';
     const [files] = await storage.bucket(bucketName).getFiles();
+    console.log("Number of files: ", files.length);
     updates = files.map(async (file) => {
         const [metadata] = await file.getMetadata();
         console.log("metadata.updated:", metadata.updated);
@@ -80,9 +80,14 @@ exports.gcs_trigger_dataflow = (data, context) => {
     getUpdateMinMax().then(result => {
         console.log("Duration: ", result);
         const sixHours = 6 * 60 * 60 * 1000;
+        if (result < 0) {
+            console.log("Duration is negative. Something went wrong.");
+            return;
+        }
         if (result < sixHours) {
             console.log("Duration is less than 6 hours, starting dataflow job.");
             goWithTheDataFlow();
+            return;
         }
 
     }).catch(error => {
