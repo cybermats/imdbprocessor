@@ -40,11 +40,15 @@ public class FilterChangedTest {
         PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
         FilterChanged fc = new FilterChanged();
-        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+        PCollectionTuple result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
                 .and(fc.getNewSearchTag(), newEntities)
                 .apply("Find updated searches", fc);
 
-        PAssert.that(result).empty();
+        PCollection<Entity> deleteResult = result.get(fc.getDeletedEntityTag());
+        PCollection<Entity> upsertResult = result.get(fc.getUpsertEntityTag());
+
+        PAssert.that(deleteResult).empty();
+        PAssert.that(upsertResult).empty();
         testPipeline.run().waitUntilFinish();
     }
 
@@ -56,11 +60,15 @@ public class FilterChangedTest {
         PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
         FilterChanged fc = new FilterChanged();
-        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+        PCollectionTuple result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
                 .and(fc.getNewSearchTag(), newEntities)
                 .apply("Find updated searches", fc);
 
-        PAssert.that(result).containsInAnyOrder(newEnt);
+        PCollection<Entity> deleteResult = result.get(fc.getDeletedEntityTag());
+        PCollection<Entity> upsertResult = result.get(fc.getUpsertEntityTag());
+
+        PAssert.that(deleteResult).empty();
+        PAssert.that(upsertResult).containsInAnyOrder(newEnt);
         testPipeline.run().waitUntilFinish();
     }
 
@@ -71,11 +79,15 @@ public class FilterChangedTest {
         PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.of(newEnt));
 
         FilterChanged fc = new FilterChanged();
-        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+        PCollectionTuple result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
                 .and(fc.getNewSearchTag(), newEntities)
                 .apply("Find updated searches", fc);
 
-        PAssert.that(result).containsInAnyOrder(newEnt);
+        PCollection<Entity> deleteResult = result.get(fc.getDeletedEntityTag());
+        PCollection<Entity> upsertResult = result.get(fc.getUpsertEntityTag());
+
+        PAssert.that(deleteResult).empty();
+        PAssert.that(upsertResult).containsInAnyOrder(newEnt);
         testPipeline.run().waitUntilFinish();
     }
 
@@ -86,12 +98,37 @@ public class FilterChangedTest {
         PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.empty(TypeDescriptor.of(Entity.class)));
 
         FilterChanged fc = new FilterChanged();
-        PCollection<Entity> result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+        PCollectionTuple result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
                 .and(fc.getNewSearchTag(), newEntities)
                 .apply("Find updated searches", fc);
 
-        PAssert.that(result).empty();
+        PCollection<Entity> deleteResult = result.get(fc.getDeletedEntityTag());
+        PCollection<Entity> upsertResult = result.get(fc.getUpsertEntityTag());
+
+        PAssert.that(deleteResult).containsInAnyOrder(oldEnt);
+        PAssert.that(upsertResult).empty();
         testPipeline.run().waitUntilFinish();
     }
+
+    @Test
+    public void TestMoved() {
+        Entity oldEnt = createEntity("pid", "kind", "id", "prop", "value");
+        Entity newEnt = createEntity("pid2", "kind", "id", "prop", "value");
+        PCollection<Entity> oldEntities = testPipeline.apply("Phony old searches", Create.of(oldEnt));
+        PCollection<Entity> newEntities = testPipeline.apply("Phony new searches", Create.of(newEnt));
+
+        FilterChanged fc = new FilterChanged();
+        PCollectionTuple result = PCollectionTuple.of(fc.getOldSearchTag(), oldEntities)
+                .and(fc.getNewSearchTag(), newEntities)
+                .apply("Find updated searches", fc);
+
+        PCollection<Entity> deleteResult = result.get(fc.getDeletedEntityTag());
+        PCollection<Entity> upsertResult = result.get(fc.getUpsertEntityTag());
+
+        PAssert.that(deleteResult).containsInAnyOrder(oldEnt);
+        PAssert.that(upsertResult).containsInAnyOrder(newEnt);
+        testPipeline.run().waitUntilFinish();
+    }
+
 
 }

@@ -162,10 +162,15 @@ class ImdbProcessor {
                 options.getShowEntity(), options.getDatastoreProject())));
 
         FilterChanged showDataUpdateCheck = new FilterChanged();
-        PCollectionTuple.of(showDataUpdateCheck.getOldSearchTag(), oldShowData)
+        PCollectionTuple showDataEntities = PCollectionTuple.of(showDataUpdateCheck.getOldSearchTag(), oldShowData)
                 .and(showDataUpdateCheck.getNewSearchTag(), newShowData)
-                .apply("Filter out unchanged shows", showDataUpdateCheck)
+                .apply("Filter out unchanged shows", showDataUpdateCheck);
+
+        showDataEntities.get(showDataUpdateCheck.getUpsertEntityTag())
                 .apply("Write shows", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
+
+        showDataEntities.get(showDataUpdateCheck.getDeletedEntityTag())
+                .apply("Delete shows", DatastoreIO.v1().deleteEntity().withProjectId(options.getDatastoreProject()));
 
 
         /*
@@ -180,10 +185,15 @@ class ImdbProcessor {
                         options.getEpisodeEntity(), options.getShowEntity(), options.getDatastoreProject())));
 
         FilterChanged episodeDataUpdateCheck = new FilterChanged();
-        PCollectionTuple.of(episodeDataUpdateCheck.getOldSearchTag(), oldEpisodeData)
+        PCollectionTuple episodeDataEntities = PCollectionTuple.of(episodeDataUpdateCheck.getOldSearchTag(), oldEpisodeData)
                 .and(episodeDataUpdateCheck.getNewSearchTag(), newEpisodeData)
-                .apply("Filter out unchanged episodes", episodeDataUpdateCheck)
+                .apply("Filter out unchanged episodes", episodeDataUpdateCheck);
+
+        episodeDataEntities.get(episodeDataUpdateCheck.getUpsertEntityTag())
                 .apply("Write episodes", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
+
+        episodeDataEntities.get(episodeDataUpdateCheck.getDeletedEntityTag())
+                .apply("Delete episodes", DatastoreIO.v1().deleteEntity().withProjectId(options.getDatastoreProject()));
 
       /*
           Create the search space
@@ -198,9 +208,14 @@ class ImdbProcessor {
                         options.getSearchEntity(), options.getDatastoreProject()));
 
         FilterChanged searchUpdateCheck = new FilterChanged();
-        PCollectionTuple.of(searchUpdateCheck.getOldSearchTag(), oldSearches).and(searchUpdateCheck.getNewSearchTag(), newSearches)
-                .apply("Filter out unchanged searches", searchUpdateCheck)
+        PCollectionTuple searchEntities = PCollectionTuple.of(searchUpdateCheck.getOldSearchTag(), oldSearches).and(searchUpdateCheck.getNewSearchTag(), newSearches)
+                .apply("Filter out unchanged searches", searchUpdateCheck);
+
+        searchEntities.get(searchUpdateCheck.getUpsertEntityTag())
                 .apply("Write searches", DatastoreIO.v1().write().withProjectId(options.getDatastoreProject()));
+
+        searchEntities.get(searchUpdateCheck.getDeletedEntityTag())
+                .apply("Write searches", DatastoreIO.v1().deleteEntity().withProjectId(options.getDatastoreProject()));
 
         p.run();
     }

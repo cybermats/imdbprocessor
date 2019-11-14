@@ -13,7 +13,7 @@ steps:
     dir: 'infrastructure'
 # 3a. Build and deploy Dataflow pipeline
   - name: 'gcr.io/cloud-builders/mvn'
-    args: [ 'compile', 'exec:java' ]
+    args: [ 'compile', 'test', 'exec:java' ]
     waitFor: ['terraform-apply']
 # 3b. Add meta data to Dataflow template
   - name: 'gcr.io/cloud-builders/gsutil'
